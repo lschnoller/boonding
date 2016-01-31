@@ -1,0 +1,748 @@
+
+<link rel="stylesheet" type="text/css" href="/css/demo_table_jui.css">
+<script type="text/javascript" src="/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript" src="/js/jquery.dataTables-sorts.js"></script>
+<script type="text/javascript" src="/js/cheques.js"></script>
+<script type="text/javascript" src="/js/liquidaciones/providers.js"></script>
+<script type="text/javascript" src="/js/jquery.validate.min.js"></script>
+<style type="text/css"> 
+    /*.ui-corner-all {
+        position: static;
+    }*/
+   
+    .chequesTotalShowTable {
+        width:300px;
+    }
+
+    input.ui-button {
+        vertical-align: bottom;
+    }
+</style>
+<script type="text/javascript">
+    $(document).ready(function(){
+        $('.menu li:eq(4) a').addClass('current');
+        $('.chkall').change(function(){
+            if($(this).is(':checked')){
+                $('[name="operation_chk"]').attr({'checked':'checked'});
+                $('[name="rejected_chk"]').attr({'checked':'checked'});			
+            }else{
+                $('[name="operation_chk"]').removeAttr('checked');
+                $('[name="rejected_chk"]').removeAttr('checked');
+            }
+        });
+    });
+</script>
+
+<div class="main">
+    <form id="providerForm" action="<?php echo $this->url(array('module' => 'gyuser', 'controller' => 'liquidaciones', 'action' => 'providers'), null, true); ?>" method="post">
+        <input type="hidden" name="provider_selected_id" value="<?php if (isset($this->selectedProvider)) echo $this->selectedProvider; ?>" />
+        <input type="hidden" id="ServerCurrentDate" value="<?php echo $this->currentDate; ?>"/> 
+<?php
+$provDetails = $this->provDetails;
+if (@$provDetails) {
+    /*  $admin = new Gyuser_Model_OtherCaves();    	
+      echo '<input type="hidden" class="tiempo_ac_capital" value="'.$admin->getAcreditacion_capital().'" />';
+      echo '<input type="hidden" class="tiempo_ac_interior" value="'.$admin->getAcreditacion_interior().'" />';
+     */
+    echo "<input type='hidden' class='impuesto_al_cheque' value='{$provDetails->getImpuesto_al_cheque()}' />
+        <input type='hidden' class='tasa_anual' value='{$provDetails->getTasa_anual()}' />
+        <input type='hidden' class='gastos_general' value='{$provDetails->getGastos_general()}' />
+        <input type='hidden' class='gastos_interior' value='{$provDetails->getGastos_interior()}' />
+        <input type='hidden' class='acreditacion_capital' value='{$provDetails->getAcreditacion_capital()}' />
+        <input type='hidden' class='acreditacion_interior' value='{$provDetails->getAcreditacion_interior()}' />
+
+        <input type='hidden' class='gastos_cheque_menor_a_1' value='{$provDetails->getGastos_cheque_menor_a_1()}' />
+        <input type='hidden' class='gastos_cheque_a_1' value='{$provDetails->getGastos_cheque_a_1()}' />
+        <input type='hidden' class='gastos_cheque_menor_a_2' value='{$provDetails->getGastos_cheque_menor_a_2()}' />
+        <input type='hidden' class='gastos_cheque_a_2' value='{$provDetails->getGastos_cheque_a_2()}' />";
+}
+?>
+    
+        <div style="margin-bottom:1em;">
+            <h1 style="display:inline; font-size:20px">Proveedor </h1>
+            <select name="provider_id" onchange="this.form.submit()" style="font-size:15px; vertical-align:bottom;" >
+                <option>Seleccionar</option>
+                <?php
+                $cList = $this->provList;
+                $opeArr = array();
+                if (count($cList)) {
+                    foreach ($cList as $cRow) {
+                        echo "<option value='" . $cRow->getId() . "'>" . $cRow->getName() . "</option>";
+                        $opeArr[$cRow->getId()] = $cRow->getName();
+                    }
+                }
+                ?>
+            </select>
+            
+        </div>
+    </form>  
+    <?php
+    if (isset($this->providerFlag)) 
+    {
+        //****************************** LIQUIDACIONES ANTERIORES ****************************************//
+        //the liquidaciones table will be outputted at the bottom of the page	
+        $liquidaciones_str = '';
+        $liquidaciones_str = '
+        <h1>Liquidaciones Anteriores</h1>
+        <div style="width:820px">
+        <table cellpadding="0" cellspacing="0" border="0" class="display whiteTable" id="grid" width="700">
+            <thead>
+                <tr>
+                    <th>Id</th>
+                    <th>FECHA</th>
+                    <th>ACREDITACIONES</th>
+                    <th>DEBE</th>                    
+                    <th>IMPORTE PAGADO</th>
+                    <th>SALDO A LA FECHA</th>
+                    <th>&nbsp;</th>
+                </tr>
+            </thead>
+	   <tbody class="gridtbody">';
+
+        $pArr = $this->lqList;
+        $strBld = "";
+        $sName = "";
+        $pre_val = 0;
+        
+        $final_balance = NULL;
+        $createNewLiquidaciones = true;
+
+        if (count($pArr)) 
+        {
+            foreach ($pArr as $pRow) 
+            {
+                //$pRow	=	new Gyuser_Model_Liquidaciones();	
+                $pre_val = $pRow->getPrevious_account_balance();
+                $final_balance = $pRow->getCurrent_account_balance();
+                $committed = (int) $pRow->getCommitted();
+                if ($committed == 0 || $committed == 2) { //not committed or en camino
+                    $createNewLiquidaciones = false;
+                    $redCls = 'redGridTr';
+                    $delBtn = '<li class="cancelBtn" title="Cancel"><img src="/images/cancel.png" /></li>';
+                } else {
+                    $redCls = '';
+                    $delBtn = '';
+                }
+                
+                $strBld .= <<<EOT
+                    <tr id="liquidacionesid_{$pRow->getId()}" class="$redCls">
+                            <td class="user_id"> {$pRow->getId()} </td>
+                            <td class="user_date">{$pRow->getDate()}</td>
+                            <td class="user_acreditacion">{$this->amountFormat($pRow->getAcreditacion())}</td>  
+                            <td class="user_amount_debt">{$this->amountFormat($pRow->getAmount_debt())}</td>                                                      
+                            <td class="user_amount_payed">{$this->amountFormat($pRow->getAmount_payed())}</td>
+                            <td class="user_current_account_balance">{$this->amountFormat($final_balance)}</td>
+                            <td class="user_status">
+                                <ul id="icons">
+                                    <li class="viewBtn" title="Ver Detalle">
+                                        <img src="/images/view_dark_icon.png" />
+                                        <input type="hidden" value="{$committed}" name="committed"/>
+                                    </li>
+                                    <li class="printLiq" title="Imprimir"><a href="/liquidaciones/printliquidacion/liquidacion_id/{$pRow->getId()}" target="_blank"><img src="/images/print-icon.png" width="16" height="16" /></a></li>
+                                    <!--<li class="pdfBtn" title="Bajar a PDF"><img src="/images/pdf_icon.png" width="16" height="16" /></li>-->
+                                    <li class="excelBtn" title="Bajar a Excel"><img src="/images/excel.png" /></li>                                    
+                                    <li class="excelMailBtn" title="Enviar a proveedor"><img src="/images/email-icon.gif" width="16" heigth="16" /></li>
+                                    {$delBtn}
+                                </ul>
+                            </td>
+                    </tr>
+EOT;
+            }
+        }
+        $liquidaciones_str .= $strBld;
+        //echo $strBld;
+
+        $liquidaciones_str .= '
+            
+    </tbody>
+</table>
+</div>
+<br/>';
+        
+        //if ($createNewLiquidaciones) { //if there are no pending operations for consolidation
+            ?>
+<div id="LiquidacionesCreateBlock">
+    <div id="operationsBox" class="tableNoHeader">
+        <h1>1. Debe</h1>        
+        <table style="width:820px"> 
+            <tr>
+                <td>
+                <?php 
+                //****************************** OPERACIONES COMPARTIDAS ***********************************//
+                if($this->sharedOps) 
+                {
+                ?>  
+                    <table cellpadding="0" cellspacing="0" border="0" class="whiteTable liqTable" id="operationGrid" style="width:100%">
+                        <thead>                           
+                            <tr><th colspan="7"><strong>OPERACIONES COMPARTIDAS</strong></th></tr>
+                            <tr>
+                                <th align="left"><input type='checkbox' class='chkall' checked='checked' /></th>
+                                <th>Fecha Op.</th>
+                                <th>NOMBRE</th>
+                                <th>TOTAL</th>			
+                                <th>GY</th>
+                                <th>COMISIONES</th>
+                                <th>SALDO</th>
+                            </tr>
+                            </thead>
+                            <tbody class="gridtbody"> 
+                            <?php
+                            $pArr = $this->operationList;
+                            $strBld = '';
+                            $pay_final_amount = 0;
+                            
+                            if (count($pArr)) {                                
+                                foreach ($pArr as $pRow) {
+                                    //$pRow	=	new Gyuser_Model_Operations();
+                                    $Op_Date = $pRow->getDate();
+                                    //$provider_obj = $pRow->getProvider_obj();
+                                    $cavename = $pRow->getProv_name(); //$provider_obj->getName();
+                                    $User_obj = $pRow->getUser_obj();
+                                    $first_name = $User_obj->getFirst_name();
+                                    $last_name = $User_obj->getLast_name();
+                                    $total = $pRow->getAmount();
+                                    $ourAmt = number_format(($total /2), 2, '.', '');
+                                    $comisionAmount = $pRow->getProv_commission_amt(); //$provider_obj->getComisionAmt();                                    
+                                    $provPayment = $pRow->getProv_payment(); //$provider_obj->getProvPayment();                                    
+                                    
+                                    /* this calculation is now in the prov data mapper
+                                     * 
+                                    $halfamout = $total / 2;
+                                    $halfamout = number_format($halfamout, 2, '.', '');
+                                    $comision = 15;
+                                    $comisionAmount = $halfamout * $comision / 100;
+                                    $comisionAmount = number_format($comisionAmount, 2, '.', '');
+                                    
+                                    $cave_pay = $halfamout - $comisionAmount;
+                                    $cave_pay = number_format($cave_pay, 2, '.', '');
+                                     * 
+                                     */
+
+                                    $pay_final_amount += $provPayment;
+
+                                    $strBld .= <<<EOT
+                                    <tr id="operationsid_{$pRow->getId()}">
+                                            <td class="user_opr_chk" style="text-align:center"><input type="checkbox" name="operation_chk" checked="checked"/></td>
+                                            <td class="op_date">$Op_Date</td>
+                                            <td class="name">{$first_name} {$last_name}</td>
+                                            <td class="user_amount">{$this->amountFormat($total)}</td>
+                                            <td class="our_amount">{$this->amountFormat($ourAmt)}</td>
+                                            <td class="comision_amount"> - {$this->amountFormat($comisionAmount)}</td>
+                                            <td class="pay_amount_cls">{$this->amountFormat($provPayment)}</td>				
+                                    </tr>
+EOT;
+                                }
+                            }
+                            echo $strBld;
+                            ?>
+                            </tbody>
+                            <tfoot>
+                                <tr style="font-weight:bold"><td colspan="5">&nbsp;</td><td>TOTAL</td><td><span class="operationsTotal_span"><?=$this->amountFormat($pay_final_amount)?></span></td></tr>
+                            </tfoot>
+                        </table>
+                <?php
+                }
+                //****************************** CHEQUES RECHAZADOS ***********************************//
+                ?>                
+                    <table cellpadding="0" cellspacing="0" border="0" class="whiteTable liqTable" id="rejectedGrid" style="width:100%">
+                        <thead>
+                            <tr><th colspan="7"><strong>CHEQUES RECHAZADOS</strong></th></tr>
+                            <tr>
+                                <th align="left"><input type='checkbox' class='chkall' checked='checked' /></th>
+                                <th>Titular</th>
+                                <th>Fecha</th>			
+                                <th>N. Cheque</th>
+                                <th>RECHAZOS</th>
+                                <th>GASTOS</th>
+                                <th>SALDO</th>
+                            </tr>
+                        </thead>
+                        <tbody class="gridtbody">
+                <?php
+                        $pArr = $this->rejectedCheques;
+                        $strBld = '';
+                        $sName = '';
+                        $rejectedTotal = 0;
+                        //$rejectedChequesFee = number_format($rejectedChequesFee,2,'.','');
+                        if (count($pArr)) {
+                            foreach ($pArr as $pRow) {
+                                //$pRow	=	new Gyuser_Model_Cheques();
+                                $Clients_obj = $pRow->getClients_obj();
+                                $Cheques_status_obj = $pRow->getCheques_status_obj();
+                                $Bank_accounts_obj = $pRow->getBank_accounts_obj();
+                                //$rejectedChequesFee = (int) $pRow->getRejected_gastos();
+                                $cMapper = new Gyuser_Model_ChequesDataMapper ();
+                                $rejectedChequesFee = (int) $cMapper->GetRejectionCostForProv($pRow);
+                                $amount = $pRow->getAmount();
+                                $rChequeWithFee = $amount + $rejectedChequesFee;
+                                $rChequeWithFee = number_format($rChequeWithFee, 2, '.', '');
+                                $rejectedTotal += $rChequeWithFee;
+                                $pay_final_amount += $rChequeWithFee;
+
+                                $rejectedChequesFee = number_format($rejectedChequesFee, 2, '.', '');
+
+                                $strBld .= <<<EOT
+                                <tr id="RejectedCheque_{$pRow->getId()}" style="background:#E3E3E3;">
+                                        <td class="user_rej_chk" style="text-align:center"><input type="checkbox" name="rejected_chk" checked="checked"/></td>
+                                        <td class="user_operation_id">{$Clients_obj->getFirst_name()} {$Clients_obj->getLast_name()}<input type="hidden" value="{$pRow->getOperation_id()}" name="operation_id"/></td>
+                                        <td class="user_check_n">{$pRow->getDate()}</td>
+                                        <td class="user_bank_name">{$pRow->getCheck_n()}</td>
+                                        <td class="user_amount">{$this->amountFormat($amount)}</td>
+                                        <td class="user_rejected_cheque_fee">{$this->amountFormat($rejectedChequesFee)}</td>                                            
+                                        <td class="pay_amount_cls">{$this->amountFormat($rChequeWithFee)}</td>
+                                </tr>
+EOT;
+                            }
+                        }
+                        $pay_final_amountInv = $pay_final_amount * -1;
+                        $pre_val = $pre_val * -1;
+                        echo $strBld;
+                        ?>
+                        </tbody>
+                        <tfoot>
+                            <tr style="font-weight:bold"><td colspan="5">&nbsp;</td><td>TOTAL</td><td><span class="rejectedTotal_span"><?=$this->amountFormat($rejectedTotal)?></span></td></tr>
+                        </tfoot>
+                    </table>                                  
+                    
+                    <?php //********************************* SALDO A LIQUIDAR **********************************************//       ?>
+                    
+                        <div class="finalPayView ui-corner-all ui-dialog  ui-dialog-titlebar ui-widget-header liqDetailsBox" style="margin-top:.3em; float:right; width:220px;">
+                            <table id="operationGridADDst" class="totals-table">
+                                <tr id='Acreditacion'>
+                                    <td>Acreditaciones:</td>
+                                    <td>
+                                        $ <input type='text' name='acreditacion' class='pay_amount_cls' value="" size="5" style="height:11px" />                                        
+                                    </td>
+                                </tr>
+                                <tr id='operationGridADDend'>
+                                    <td>Importe a Liquidar:</td>
+                                    <td>
+                                        <span class='pay_final_amount_span'><?=$this->amountFormat($pay_final_amount)?></span>     
+                                        <input type='hidden' id='pay_final_amount' value='<?=$this->amountFormat($pay_final_amountInv)?>' />
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>                        
+                        <?php
+                        //echo "<tr id='PreviousBalance'><td>Balance Previo:</td><td  class='pay_amount_cls' style=''>{$this->amountFormat($pre_val)}</td></tr>";
+                        //echo "<tr id='Acreditacion'><td>Acreditaciones:</td><td '>$ <input type='text' name='acreditacion' size='14' class='pay_amount_cls' /></td></tr>";
+                        //$pay_final_amount = number_format($pay_final_amount, 2, '.', '');
+                        //echo "<tr id='operationGridADDend'><td>IMPORTE A LIQUIDAR:</td><td ><span class='pay_final_amount_span'>{$this->amountFormat($pay_final_amount)}</span><input type='hidden' id='pay_final_amount' value='{$this->amountFormat($pay_final_amount)}' /></td></tr>";
+                        //echo '</table></div><br />';
+                        /*
+                          echo '<table  class="tablep11 fr clr">';
+                          $pre_val = $pre_val * -1;
+                          if ($pre_val) {
+                          echo "<tr id='PreviousBalance'><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td style='background:#E3E3E3;'>Balance</td><td  class='pay_amount_cls' style='background:#CCCCCC;'>{$this->amountFormat($pre_val)}</td></tr>";
+                          } else {
+                          echo "<tr id='PreviousBalance'><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td style='background:#E3E3E3;'>Balance</td><td  class='pay_amount_cls' style='background:#CCCCCC;'>0.00</td></tr>";
+                          }
+                          echo "<tr id='Acreditacion'><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td style='background:#E3E3E3;'>Otros gastos</td><td style='background:#E3E3E3;'><input type='text' name='acreditacion' class='pay_amount_cls' /></td></tr>";
+                          echo '<tr><td style="height:20px"></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>';
+                          echo "<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td style='background:#E3E3E3;'>SALDO A LIQUIDAR</td><td style='background:#CCCCCC;'><span class='pay_final_amount_span'>{$this->amountFormat($pay_final_amount)}</span><input type='hidden' id='pay_final_amount' value='{$this->amountFormat($pay_final_amount)}' /></td></tr>";
+                          echo '</table>'
+
+                        */
+                    
+                    ?>
+                        </td>
+                    </tr>
+                </table>
+                </div><!--eof operationsBox-->
+                <div style="clear:both">&nbsp;</div>
+                
+                <?php
+                    $provDetails = $this->provDetails;
+                    $html_tasaAnual = '';
+                    $html_tasaDiaria = '';
+                    if (@$provDetails) {
+                        $html_tasaAnual = $provDetails->getTasa_anual();
+                        $html_tasaDiaria = round($provDetails->getTasa_anual() / 360, 3);
+                    }
+                //$caveDet = $this->lqList;  
+                    
+                    
+                    
+                //****************************** CALCULO DE DESCUENTO ***********************************//
+                ?>
+                <div class="tableNoHeader" style="width:820px">                    
+                    <h1>2. C&aacute;lculo de Descuento  <span style="font-size:15px"> - Tasa Anual <span class=""><?=$html_tasaAnual?></span>% (<?=$html_tasaDiaria?>%)</span> <input type='button' class='chooseChequesBtn jqButton' value='Seleccionar Cheques'/> <br />
+                        <span style="font-size:15px">Fecha de Liquidaci&oacute;n:</span> <input size="10" type="text" class="datepicker currentDateLiq" />
+                    </h1>
+                    <table cellpadding="0" cellspacing="0" border="0" class="whiteTable wide-padd liqTable" id="viewChequesGrid">
+                        <thead>
+                            <tr>
+                                <th>TITULAR</th>
+                                <th>EMPRESA</th>
+                                <th>FECHA</th>                                  
+                                <th>NUMERO</th>                                
+                                <th>IMPORTE</th>
+                                <th>CANT. DIAS</th>
+                                <th>IMP. AL CHEQUE</th>
+                                <th>DESCUENTO</th>			
+                                <th>SALDO A HOY</th>
+                            </tr>
+                        </thead>
+                        <tbody class="gridtbody">
+                        </tbody>
+                        <tfoot id="selectedChequesTotals">
+                            <tr><td colspan="9">&nbsp;</td></tr>
+                        </tfoot>
+                        <!--
+                        <tfoot>
+                            <tr style="font-weight:bold"><td colspan="7">&nbsp;</td><td>TOTAL</td><td><span class="selectedTotal_span"></span></td></tr>
+                            <input type="hidden" id="selectedTotal" val="" />
+                        </tfoot>
+                        -->
+                    </table>
+                    <!--<table cellpadding="0" cellspacing="0" border="0" class="whiteTable wide-padd liqTable" id="viewChequesGridTotals" style="display:none">
+                        <thead>
+                            <tr>
+                                <th>N. CHEQUES</th>
+                                <th>DIAS PROMEDIO</th>
+                                <th>BRUTO</th>                                  
+                                <th>IMP. AL CHEQUE</th>                                
+                                <th>INTERESES</th>
+                                <th>GASTOS INT.</th>
+                                <th>GASTOS CAP.</th>
+                                <th>GASTOS OTROS</th>			
+                                <th>SUBTOTAL</th>
+                            </tr>
+                        </thead>
+                        <tbody class="gridtbody">
+
+
+                        </tbody>
+                    </table>-->		
+                </div>
+
+                <div class="chequeList" title="Libro de cheques <?php //echo count($this->cList) ?>">
+
+                    <fieldset>
+                        <form action="" method="post" id="AddProductSizeForm">
+                            <table class="table5p whiteTable" align="center">
+                                <tr>
+                                    <td>
+                                        <table cellpadding="0" cellspacing="0" border="0" class="table5p" id="chequesGrid" style="min-width:700px">
+                                            <thead>
+
+                                                <tr>
+                                                    <th><!-- <input type="checkbox" class="raw_select_all" /> --></th>
+                                                    <th>Id</th>
+                                                    <th>Titular</th>
+                                                    <th>Empresa</th>
+                                                    <th>Fecha</th>
+                                                    <th>N. Cheque</th>
+                                                    <th>Importe</th>
+                                                    <th>Valor al Dia</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="gridtbody">
+        <?php /*
+        $pArr = $this->cList;
+        $strBld = "";
+        $sName = "";
+        if (count($pArr)) {
+            foreach ($pArr as $pRow) {
+
+                //$pRow	=	new Gyuser_Model_Cheques();
+                $Clients_obj = $pRow->getClients_obj();
+                $Cheques_status_obj = $pRow->getCheques_status_obj();
+                $Bank_accounts_obj = $pRow->getBank_accounts_obj();
+
+                $strBld .= <<<EOT
+				<tr id="userid_{$pRow->getId()}">
+					<td><input type="checkbox" class="chequeChk"/></td>
+					<td class="user_id"> {$pRow->getId()} </td>
+					<td class="user_operation_id">{$Clients_obj->getFirst_name()} {$Clients_obj->getLast_name()}<input type="hidden" value="{$pRow->getOperation_id()}" name="operation_id"/></td>
+					<td class="user_date">{$pRow->getDate()}</td>
+					<td class="user_check_n">{$pRow->getCheck_n()}</td>
+					<td class="user_bank_name">{$Bank_accounts_obj->getBank_name()}111</td>
+					<td class="user_amount">{$this->amountFormat($pRow->getAmount())}</td>
+					<td class="user_status">{$Cheques_status_obj->getStatus_list()}<input type="hidden" value="{$Cheques_status_obj->getId()}" name="status_id"/></td>
+				</tr>
+EOT;
+            }
+        }
+        echo $strBld;
+        */ ?>
+                                            </tbody>
+                                        </table>
+
+                                    </td>
+                                </tr>
+
+
+                            </table>
+
+                        </form>
+                    </fieldset>
+                    <div  class="ui-widget-header ui-corner-all chequesTotalShowTable">
+                        <table class="table5p">
+                            <tr>
+                                <td class="result-panel-td">CANTIDAD DE CHEQUES</td>
+                                <td class="result-panel-td"> : </td>
+                                <td class="result-panel-td"> <span class="qtyCls">0.00</span></td>
+                            </tr>
+                            <tr>
+                                <td class="result-panel-td">IMPORTE A LIQUIDAR </td>
+                                <td class="result-panel-td"> : </td>
+                                <td class="result-panel-td"> <span class="payCls">0.00</span></td>
+                            </tr>
+                            <tr>
+                                <td class="result-panel-td">IMPORTE EN CHEQUES </td>
+                                <td class="result-panel-td"> : </td>
+                                <td class="result-panel-td"> <span class="payingCls">0.00</span></td>
+                            </tr>
+                            <tr>
+                                <td class="result-panel-td">SALDO</td>
+                                <td class="result-panel-td"> : </td>
+                                <td class="result-panel-td"> <span class="balanceCls">0.00</span></td>
+                            </tr>				
+                        </table>
+                    </div>
+                </div>
+                <br/>
+                
+                <!--/************************************************** LIQUIDACION ****************************************************************/-->                
+                <div>
+                    <h1>3. Liquidación <input type="button" value="Crear Liquidaci&oacute;n" class="sendCheques jqButton" /></h1> 
+                    <div class="finalPayView ui-corner-all ui-dialog  ui-dialog-titlebar ui-widget-header liqDetailsBox">                           
+                        <table class="table5p">
+                            <tr>
+                                <td>IMPORTE A LIQUIDAR </td>
+                                <td> : </td>
+                                <td> <span class="payCls">0.00</span></td>
+                            </tr>
+                            <tr>
+                                <td>IMPORTE EN CHEQUES </td>
+                                <td> : </td>
+                                <td> <span class="payingCls">0.00</span></td>
+                            </tr>
+                            <tr>
+                                <td>SALDO</td>
+                                <td> : </td>
+                                <td> <span class="balanceCls">0.00</span></td>
+                            </tr>	
+
+                        </table>
+                    </div>
+                    <table style="margin-top:.5em;">
+                        <tr>
+                            <td colspan="3" align="right"></td>
+                        </tr>
+                    </table>
+                </div>
+
+
+                <form id="PayChecksForm" action="<?php echo $this->url(array('module' => 'gyuser', 'controller' => 'liquidaciones', 'action' => 'createliquidacion'), null, true); ?>" method="post" >
+                    <input type="hidden" value="" name="id" />
+                    <input type="hidden" value="" name="date"/>
+                    <input type="hidden" name="provider_id" value="<?php if (isset($this->selectedProvider)) echo $this->selectedProvider; ?>" />
+                    <input type="hidden" value="" name="acreditacion" />
+                    <input type="hidden" value="" name="committed" />
+                    
+                    <input type="hidden" value="" name="cheques_json" />
+                    <input type="hidden" value="" name="operations_json" />
+                    <input type="hidden" value="" name="rejected_cheques_json" /> 
+                                        
+                    <!-- not used anymore -->
+                    <input type="hidden" value="" name="previous_account_balance"/>
+                    <input type="hidden" value="" name="amount_debt"/>
+                    <input type="hidden" value="" name="amount_payed"/>                    
+                    <input type="hidden" value="" name="current_account_balance"/>
+                    <input type="hidden" value="" name="pay_final_amount_edit"/>
+                    
+                    <input type="hidden" value="" name="checks_qty"/>
+                    <input type="hidden" value="" name="average_days"/>
+                    <input type="hidden" value="" name="total_bruto"/>
+                    <input type="hidden" value="" name="impuesto_al_cheque_amt"/>
+                    <input type="hidden" value="" name="intereses"/>
+                    <input type="hidden" value="" name="gastos_interior"/>
+                    <input type="hidden" value="" name="gastos_general"/>
+                    <input type="hidden" value="" name="gastos_varios"/>
+                    <input type="hidden" value="" name="total_neto"/>
+                    <input type="hidden" value="" name="gastos_menor_a_monto_1" />
+                    <input type="hidden" value="" name="gastos_menor_a_1" />
+                    <input type="hidden" value="" name="gastos_menor_a_monto_2" />
+                    <input type="hidden" value="" name="gastos_menor_a_2" />
+                </form>
+
+                <br/><br/>
+                <hr>
+            </div>
+        <?php
+    /*       
+    }else {
+        echo '<p><strong>Liquidaci&oacute;n pendiente.</strong> Por favor, consolide la liquidaci&oacute;n actual antes de iniciar una nueva.</p>';
+    }
+     */
+    echo $liquidaciones_str;
+    ?>
+    
+    <!--/************************************************** LIQUIDACION POPUP VIEW ****************************************************************/--> 
+        <div class="chequeListByLiquidacionesId tableNoHeader" title="Detalle de Liquidaci&oacute;n">         
+                <h1 class="loadOperations">Cargando...</h1>
+                <!--
+                <form id="liqDataForm">
+                </form>
+                -->
+                <div style="width:900px">
+                    <h1 style="margin-top:0">1. Debe</h1>                
+                    <table cellpadding="0" cellspacing="0" border="0" class="whiteTable liqTable" id="operationGridView" style="width:100%">
+                        <thead>                           
+                            <tr><th colspan="7"><strong>OPERACIONES COMPARTIDAS</strong></th></tr>
+                            <tr>
+                                <th align="left"><input type='checkbox' class='chkall' checked='checked' /></th>
+                                <th>Fecha Op.</th>
+                                <th>NOMBRE</th>
+                                <th>TOTAL</th>			
+                                <th>GY</th>
+                                <th>COMISIONES</th>
+                                <th>SALDO</th>
+                            </tr>
+                        </thead>
+                        <tbody class="gridtbody"> 
+                        </tbody>
+                        <tfoot>
+                            <tr style="font-weight:bold"><td colspan="5">&nbsp;</td><td>TOTAL</td><td><span class="operationsTotal_span"></span></td></tr>
+                        </tfoot>
+                    </table>
+
+                    <table cellpadding="0" cellspacing="0" border="0" class="whiteTable liqTable" id="rejectedGridView" style="width:100%">
+                        <thead>
+                            <tr><th colspan="7"><strong>CHEQUES RECHAZADOS</strong></th></tr>
+                            <tr>
+                                <th align="left"><input type='checkbox' class='chkall' checked='checked' /></th>
+                                <th>Titular</th>
+                                <th>Fecha</th>			
+                                <th>N. Cheque</th>
+                                <th>RECHAZOS</th>
+                                <th>GASTOS</th>
+                                <th>SALDO</th>
+                            </tr>
+                        </thead>
+                        <tbody class="gridtbody">                            
+                        </tbody>
+                        <tfoot>
+                            <tr style="font-weight:bold"><td colspan="5">&nbsp;</td><td>TOTAL</td><td><span class="rejectedTotal_span"></span></td></tr>
+                        </tfoot>
+                    </table>
+
+                    <div class="finalPayView ui-corner-all ui-dialog  ui-dialog-titlebar ui-widget-header liqDetailsBoxByLiqId" style="margin-top:.3em; float:right; width:220px;">
+                        <table id="operationGridADDstView" class="totals-table">
+                            <tr id='Acreditacion'>
+                                <td>Acreditaciones:</td>
+                                <td>
+                                    $ <input type='text' name='acreditacion' class='pay_amount_cls' value="" size="5" style="height:11px" />                                        
+                                </td>
+                            </tr>
+                            <tr id='operationGridADDend'>
+                                <td>Importe a Liquidar:</td>
+                                <td>
+                                    <span class='pay_final_amount_span'></span>   
+                                    <input type='hidden' id='pay_final_amount' value='' />
+                                </td>
+                            </tr>
+                        </table>
+                    </div> 
+                    <div style="clear:both">&nbsp;</div>
+                
+                    <h1>2. Cálculo de Descuento</h1>
+                    <table  cellpadding="0" cellspacing="0" border="0" class="display whiteTable" id="viewChequesGridView" >
+                        <thead>
+                            <tr>
+                                <th class="chkInpckb"></th>
+                                <th>TITULAR</th>
+                                <th>EMPRESA</th>
+                                <th>FECHA</th>	                            
+                                <th>N. CHEQUE</th>
+                                <th>IMPORTE</th>                            
+                                <th>CANT. DIAS</th>
+                                <th>IMP. AL CHEQUE</th>
+                                <th>DESCUENTO</th>			
+                                <th>SALDO A HOY</th>
+                            </tr>
+                        </thead>
+                        <tbody class="gridtbody">
+                        </tbody>
+                        <tfoot id="selectedChequesTotalsView">
+                            <tr class="checks-totals-th"><td></td><td>N. CHEQUES</td><td>DIAS PROM.</td><td>BRUTO</td><td>IMP. AL CHEQUE</td><td>INTERESES</td><td>GASTOS INT.</td><td>GASTOS CAP.</td><td>GASTOS OTROS</td><td>SUBTOTAL</td></tr>
+                            <tr id="chequesTotals"></tr>
+                        </tfoot>
+                    </table>
+                </div>
+                
+                <br/>
+                <div class="finalPayViewByLiquidacionesId ui-corner-all ui-dialog  ui-dialog-titlebar ui-widget-header">
+                    <table class="table5p">
+                        <tr>
+                            <td>IMPORTE A LIQUIDAR </td>
+                            <td> : </td>
+                            <td> <span class="payCls">0.00</span></td>
+                        </tr>
+                        <tr>
+                            <td>IMPORTE EN CHEQUES </td>
+                            <td> : </td>
+                            <td> <span class="payingCls">0.00</span></td>
+                        </tr>
+                        <tr>
+                            <td>SALDO </td>
+                            <td> : </td>
+                            <td> <span class="balanceCls">0.00</span></td>
+                        </tr>				
+                    </table>
+                </div>
+
+
+                <form id="PayChecksEditForm" style="display:none;" action="<?php echo $this->url(array('module' => 'gyuser', 'controller' => 'liquidaciones', 'action' => 'createliquidacion'), null, true); ?>" method="post" >
+                    <input type="hidden" value="" name="id"/>
+                    <input type="hidden" value="" name="date"/>
+                    <input type="hidden" name="provider_id" value="<?php if (isset($this->selectedProvider)) echo $this->selectedProvider; ?>" />
+                    <input type="hidden" value="1" name="committed" />
+                    <input type="hidden" value="" name="acreditacion"/>
+                    
+                    <input type="hidden" value="" name="cheques_json" />
+                    <input type="hidden" value="" name="operations_json" />
+                    <input type="hidden" value="" name="rejected_cheques_json" />
+                    
+                    <!-- not used anymore -->
+                    <input type="hidden" value="" name="previous_account_balance"/>
+                    <input type="hidden" value="" name="amount_debt"/>                    
+                    <input type="hidden" value="" name="amount_payed"/>
+                    <input type="hidden" value="" name="current_account_balance"/>
+                    <input type="hidden" value="" name="checks_qty"/>
+                    <input type="hidden" value="" name="average_days"/>
+                    <input type="hidden" value="" name="total_bruto"/>
+                    <input type="hidden" value="" name="impuesto_al_cheque_amt"/>
+                    <input type="hidden" value="" name="intereses"/>
+                    <input type="hidden" value="" name="gastos_interior"/>
+                    <input type="hidden" value="" name="gastos_general"/>
+                    <input type="hidden" value="" name="gastos_varios"/>
+                    <input type="hidden" value="" name="total_neto"/>
+                    
+                    <input type="hidden" value="" name="impuesto_al_cheque" />
+                    <input type="hidden" value="" name="tasa_anual" />
+                    <input type="hidden" value="" name="acreditacion_capital" />
+                    <input type="hidden" value="" name="acreditacion_interior" />
+                    <input type="hidden" value="" name="gastos_general" />
+                    <input type="hidden" value="" name="gastos_interior" />
+                    <input type="hidden" value="" name="gastos_menor_a_monto_1" />
+                    <input type="hidden" value="" name="gastos_menor_a_1" />
+                    <input type="hidden" value="" name="gastos_menor_a_monto_2" />
+                    <input type="hidden" value="" name="gastos_menor_a_2" />
+                </form>
+        </div>
+<?php } ?>
+    <div class="ui-dialog mainMsgDiv" >
+        <div class="ui-dialog-titlebar ui-widget-header ui-corner-all ui-helper-clearfix mainMsgInnerDiv">
+            <span class="ui-dialog-title" id="mainMsg">
+                Edit User
+            </span>
+            <a href="#" class="ui-dialog-titlebar-close ui-corner-all msgClose" role="button">
+                <span class="ui-icon ui-icon-closethick">close</span></a>
+        </div>
+    </div>
+
+    
+</div>

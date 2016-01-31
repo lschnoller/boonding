@@ -1,0 +1,101 @@
+<?php
+$client = $this->clientInfo;
+$name = $client->getFirst_name().' '.$client->getLast_name();
+$status = $client->getStatus();
+$tel1 = $client->getTel_cell();
+$tel2 = $client->getTel_part();
+$email = $client->getEmail();
+?>
+<script type="text/javascript">
+    $(document).ready(function(){
+        $('.toolTipCancelBtn').click(function(){
+            $('.tooltipBox').hide();
+            $('.reschedule-icon').removeAttr("disabled");
+        });
+        /*$( ".datepicker" ).datepicker({
+            changeMonth: true,
+            changeYear: true,
+            "dateFormat": 'dd/mm/yy',
+            yearRange: "-50:+0", // this is the option you're looking for
+        });*/
+        /*$( ".datepicker" ).focus(function(){
+            $('.ui-datepicker-calendar').show();
+        });*/
+    });
+</script>
+<div id="client-info">
+    <input type="hidden" id="CRMName" val="<?=$name?>" /> 
+    <input type="hidden" id="CRMStatus" val="<?=$status?>" />
+    <input type="hidden" id="CRMTel1" val="<?=$tel1?>" />
+    <input type="hidden" id="CRMTel2" val="<?=$tel2?>" />
+    <input type="hidden" id="CRMEmail" val="<?=$email?>" />
+        
+	<ul style="margin-top:5px;">
+            <div id="client-info-cont-signoff">
+            <p class="sticky-bar">
+                Celular: <?=$tel1?>
+            </p>
+            <p class="sticky-bar">
+                Tel: <?=$tel2?>
+            </p>
+            <p class="sticky-bar">
+                Email: <?=$email?>
+            </p>
+	</div>
+	<?php 
+	if(is_array($this->clientHistory)) {
+            foreach ($this->clientHistory AS $val) 
+            {
+                $thumbs = '';
+                if($val['status'] == 1)
+                        $thumbs = '<a class="thumb-up"></a>';
+                elseif($val['status'] == 2)
+                        $thumbs = '<a class="thumb-down"></a>';
+                
+                if ($val['title'] != '')
+                    $val['title'] .= ' - ';
+
+            ?>
+            <li>
+                    <h2><?=$thumbs?> <?=$val['title']?><span class="action-date"><?=$val['action_date']?></span></h2>
+                    <p><?=$val['comment']?></p>
+                    <div class="action-operator"><?=$val['operator']?></div>
+            </li>
+            <?php
+            }
+	}
+	else {
+            echo '<li>Sin Historial</li>';
+	}
+	?>
+	</ul>
+	<div id="operator-comment-cont">
+                <input type="text" id="reprogramar-date" style="visibility:hidden" /> <!-- date picker shows -->
+                <input type="hidden" id="reprogramarDateValue" name="reprogramar_date" />  <!-- date data -->
+		<h2></h2>
+		<p>
+			<textarea id="signoff-comment"></textarea>
+		</p>
+		<p style="text-align: right;">
+                    
+                    <input id="reprogramar-btn" type="button" onclick="saveEventAction(this,<?=$this->notificationId?>,0);" class="ui-button ui-widget ui-state-default ui-corner-all reschedule-icon" value="Reprogramar      " />
+                    <input type="button" onclick="saveEventAction(this,<?=$this->notificationId?>,1);" class="ui-button ui-widget ui-state-default ui-corner-all signoff-icon" value="Finalizada      " />
+                </p>
+	</div>
+</div>
+
+
+<!--
+<div id="reprogramarBox" class="tooltipBox hidden-default sticky-bar" title="Nueva Fecha de Tarea" style="width:300px; background-color:#FF3F25">
+    <img  src="/images/cancel.png" class="toolTipCancelBtn" style="float:right;cursor:pointer">
+    <table class="editTableStyle">
+        <tr>
+            <td>
+                <input type="text" id="reprogramarDate" name="reprogramar_date" class="datepicker required" style="width:80px" />                
+            </td>
+            <td>
+                <input type='button' value='Asignar Fecha' class='ui-button ui-widget ui-state-default ui-corner-all' onclick="saveEventAction(this,<?=$this->notificationId?>,3);" />
+            </td>
+        </tr>
+    </table>
+</div>-->

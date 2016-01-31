@@ -1,0 +1,137 @@
+<link rel="stylesheet" type="text/css" href="/css/demo_table_jui.css">
+<script type="text/javascript" src="/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript" src="/js/jquery.validate.min.js"></script>
+<script>
+    $(document).ready(function(){
+        $( "#tabs" ).tabs({ selected: 0 });
+        oTable = $('#grid').dataTable({
+            "bJQueryUI": true,
+            "sPaginationType": "full_numbers",
+            "sScrollXInner": "100%",
+            "bScrollCollapse": true,
+            "bStateSave": true,
+            "iDisplayLength"	: 50,
+        });
+        var edBtn = "<span class='editBtn gridBtn'>Editar</span>";
+        edBtn += "<span class='deleteBtn gridBtn'>Borrar</span>";
+        $("#grid_length").append(edBtn);
+        $("#grid tbody").click(function(event) {
+            $(oTable.fnSettings().aoData).each(function (){
+                $(this.nTr).removeClass('row_selected');
+            });
+            $(event.target.parentNode).addClass('row_selected');
+        });
+	
+        /* Add a click handler for the delete row */
+        $('.deleteBtn').click( function() {
+		
+            deleteFun(oTable);
+        } );
+	
+        function deleteFun(oTable){
+            var anSelected = fnGetSelected( oTable );
+            var selIdArr = anSelected[0].id.split("_");
+            //window.location	=	'/crm/eventdelete/'+selIdArr[1];
+            //deleteThis(anSelected[0]);
+            $('.action-delete',anSelected).trigger('click');
+		
+        }
+        function fnGetSelected( oTableLocal )
+        {
+            var aReturn = new Array();
+            var aTrs = oTableLocal.fnGetNodes();
+		
+            for ( var i=0 ; i<aTrs.length ; i++ )
+            {
+                if ( $(aTrs[i]).hasClass('row_selected') )
+                {
+                    aReturn.push( aTrs[i] );
+                }
+            }
+            return aReturn;
+        }
+        $( ".editBtn" ).click(function() {
+            var selRow = $(".gridtbody .row_selected");
+		
+            if(selRow.size()){
+                var idArr = selRow.attr('id').split("_");
+                window.location	=	'/crm/eventedit/'+idArr[1];
+            }else{				
+                showmsg("Por favor seleccione una fila y vuelva a intentar.",'f');
+            }
+		
+            //trSelected
+        });
+    });
+
+</script>
+<div id="crm-content">
+    <div class="main">
+        <div id="tabs">
+            <ul>
+                <li><a href="#tabs-1" class="edTabBtn">Listado</a></li>
+                <li><a href="#tabs-2">Agregar</a></li>
+            </ul>
+            <div id="tabs-1" class="InnerTabs">
+                <div style="position:relative;">
+                    <table cellpadding="0" cellspacing="0" border="0" class="display" id="grid">
+                        <thead>
+                            <tr>
+                                <th width="80">#</th>
+                                <th>Tipo de Evento</th>
+                                <th>Acci&oacute;n</th>
+                                <th>Lapso</th>
+                                <th>Operador</th>
+                                <th style="display:none;">&nbsp;</th>
+                            </tr>
+                        </thead>
+                        <tbody class="gridtbody">
+                            <?php
+                            if ($this->list) {
+                                foreach ($this->list as $key => $val) {
+                                    echo "<tr id='event_{$val['id']}'>";
+                                    echo '<td>' . $val['id'] . '</td>';
+                                    echo '<td>' . $this->event_typeArray[$val['event_type']] . '</td>';
+                                    echo '<td>' . $this->event_actionArray[$val['event_action']] . '</td>';
+                                    echo '<td>' . $val['event_span_count'] . ' ' . $this->eventUnitArray[$val['event_span_unit']] . '</td>';
+                                    $operator = '----';
+                                    if (isset($this->operatorArray[$val['operator_id']]))
+                                        $operator = $this->operatorArray[$val['operator_id']];
+                                    echo '<td>' . $operator . '</td>';
+                                    echo '<td  style="display:none;">
+                                                <a href="/crm/eventedit/' . $val['id'] . '" title="Editar" class="action-link action-edit"></a>
+                                                <a onclick="deleteThis(this); return false;" href="/crm/eventdelete/' . $val['id'] . '" title="Delete" class="action-link action-delete"></a>
+                                        </td>';
+                                    echo '</tr>';
+                                }
+                            }
+                            ?>
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div id="tabs-2" class="InnerTabs">
+                <div id="crm-content">
+                    <div class="messages">
+                        <?php
+                        foreach (Zend_Controller_Action_HelperBroker::getStaticHelper('flashMessenger')
+                                ->getMessages() as $message) :
+                            ?>
+                            <p><?php echo $this->escape($message); ?></p>
+                    <?php endforeach; ?>
+                    </div>
+                    <?php echo $this->form; ?>
+
+<?php if (isset($_POST['event_type']) || isset($this->edit)) { ?>
+                        <script type="text/javascript">
+                            $(document).ready(function(){
+                                $('#tabs').tabs( "select" , 1 );
+                            });
+                        </script>
+<?php } ?>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

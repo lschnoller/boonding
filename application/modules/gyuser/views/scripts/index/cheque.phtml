@@ -1,0 +1,675 @@
+<link rel="stylesheet" type="text/css" href="/css/demo_table_jui.css">
+<script type="text/javascript" src="/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript" src="/js/gycheque.js"></script>
+<script type="text/javascript" src="/js/jquery.validate.min.js"></script>
+<style>
+    .jq-link-btn {
+        padding:1px 5px;
+        white-space:nowrap;
+    }
+    .user-actions {
+        text-align:center;
+    }
+</style>
+<script type="text/javascript">
+    $(document).ready(function(){
+        $('.menu li:eq(3) a').addClass('current');
+    });
+</script>
+
+<?php
+$oList = $this->operations;
+$opeNameArr = $opeArr = array();
+$opeBlr = "";
+if (count($oList)) {
+    foreach ($oList as $oRow) {
+        $fn = $oRow->getOperations_first_name();
+        $amo = $oRow->getAmount();
+        $cid = $oRow->getClient_id();
+        $id = $oRow->getId();
+        $opeBlr .= "<option value='$id' firstname='$fn' amount='$amo' clientid='$cid'>$fn $amo</option>";
+        $opeArr[$id] = $fn . ' ' . $amo;
+        $opeNameArr[$id] = $amo;
+    }
+}
+
+
+$sList = $this->statusList;
+$sListBlr = "";
+$sListArr = array();
+if (count($sList)) {
+    foreach ($sList as $sRow) {
+        $sId = $sRow->getId();
+        $sName = $sRow->getStatus_list();
+        $sListBlr .= "<option value=\"$sId\">$sName</option>";
+        $sListArr[$sId] = $sName;
+    }
+}
+?>
+<div class="main">
+    <div id="tabs" class="ui-tabs ui-widget ui-widget-content ui-corner-all" style="background:none; border:none;">
+        <ul class="ui-tabs-nav ui-li-helper-reset ui-helper-clearfix ui-widget-header ui-corner-all tab-header">
+            <li class="ui-state-default ui-corner-top"><a href="#tabs-1" class="edTabBtn">Listado</a></li>
+            <li class="ui-state-default ui-corner-top"><a href="#tabs-2">Cobranzas</a></li>
+            <li class="ui-state-default ui-corner-top"><a href="#tabs-3">Terceros</a></li>
+        </ul>
+        <div id="tabs-1" class="InnerTabs">
+            <div style="position:relative;">
+                <table cellpadding="0" cellspacing="0" border="0" class="display" id="grid">
+                    <thead>
+                        <tr>                            
+                            <th>Titular</th>
+                            <th>Fecha</th>
+                            <th align="right">Numero</th>
+                            <th>Importe</th>
+                            <th>Estado</th>
+                            <th>Pasado a</th>
+                            <th>Empresa</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody class="gridtbody">
+                        <?php
+                        $pArr = $this->cList;
+                        $strBld = "";
+                        $sName = "";
+                        if (count($pArr)) 
+                        {
+                            foreach ($pArr as $pRow) 
+                            {
+                                $status = (int) $pRow->getStatus();
+                                $payedBtn = $rejBtn = '';
+                                switch ($status) {
+                                    case 3: //rechazado
+                                        $rejBtn = "<span class='ui-state-default ui-corner-all addNewGdc' title='' id='OpClientIduserid_'><span class='jq-link-btn'>Gesti&oacute;n de Cobranza</span></span>";
+                                        if($pRow->getBalance() == 0)
+                                            $statusName = $pRow->getStatus_name().' <span style="font-size:smaller">[saldado]</span>';
+                                        else
+                                            $statusName = $pRow->getStatus_name().' <span style="font-size:smaller">[saldo: '.$this->amountFormat($pRow->getBalance()).']</span>';
+                                        break;
+                                    case 6: //en proceso
+                                        break;
+                                    default:
+                                        $payedBtn = '<img src="/images/accept.png" class="payedChequeBtn"  />';
+                                        $rejBtn = '<img src="/images/cancel.png" class="rejectChequeBtn" />'; 
+                                        $statusName = $pRow->getStatus_name();
+                                }
+                                /*
+                                if ($status != 3)
+                                    $payedBtn = '<img src="/images/accept.png" class="payedChequeBtn"  />';
+                                    $rejBtn = '<img src="/images/cancel.png" class="rejectChequeBtn" />';
+                                
+                                if ($status == 3)
+                                    $rejBtn = "<span class='ui-state-default ui-corner-all addNewGdc' title='' id='OpClientIduserid_'><span class='jq-link-btn'>Gesti&oacute;n de Cobranza</span></span>";
+                                */
+                                
+                                if ($pRow->getOperation_type() == 1) { //cheques propios 
+                                    $clientId = $pRow->getClient_id();
+                                    $name = $pRow->getFirst_name().' '.$pRow->getLast_name();
+                                }
+                                elseif($pRow->getOperation_type() == 2) { //cheques tercero 
+                                    $clientId = $pRow->getTercero_client_id();
+                                    $name = $name = $pRow->getTercero_first_name().' '.$pRow->getTercero_last_name().' <span style="font-size:smaller">['.$pRow->getFirst_name().' '.$pRow->getLast_name().']</span>';
+                                }
+                                
+                                $pasadoA = '';
+                                if($pRow->getLiquidacion_id())
+                                    $pasadoA = "{$pRow->getCave_name()} <span style='font-size:smaller'>[Liq {$pRow->getLiquidacion_id()} {$pRow->getLiq_date()}]</span>";
+                                
+                                $strBld .= <<<EOT
+				<tr id="userid_{$pRow->getId()}">
+                                    <input type="hidden" name="status_id" value="{$status}" />
+                                    <input type="hidden" name="operation_id" value="{$pRow->getOperation_id()}" />
+                                    <!--<td class="user_id"> {$pRow->getId()} </td>-->                                    
+                                    <td class="user_name" id="clientId_{$clientId}">{$name}</td>
+                                    <td class="user_date">{$pRow->getDate()}</td>
+                                    <td class="user_check_n">{$pRow->getCheck_n()}</td>
+                                    <td class="user_amount" style='white-space:nowrap'>{$this->amountFormat($pRow->getAmount())}</td>
+                                    <td class="user_status" style='white-space:nowrap'>{$statusName}</td>
+                                    <td class="user_cave_name" style='white-space:nowrap'>{$pasadoA}</td>
+                                    <td class="user_operation_id">{$pRow->getEmpresa()}</td>
+                                    <td class="user_actions">{$payedBtn} {$rejBtn}</td>
+				</tr>
+EOT;
+                            }
+                        }
+                        echo $strBld;
+                        ?>
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div id="tabs-2" class="InnerTabs">
+            <div style="position:relative;">
+                <table cellpadding="0" cellspacing="0" border="0" class="display" id="grid-cobranzas">
+                    <thead>
+                        <tr>                            
+                            <th>Titular</th>
+                            <th>Fecha</th>
+                            <th align="right">Numero</th>
+                            <th>Importe</th>                                                        
+                            <th  style="white-space:nowrap">Pasado a</th>
+                            <th>Estado</th>
+                            <th style="white-space:nowrap">A Pagar</th>
+                            <th>Empresa</th>
+                            <th>C.P.</th>
+                            <th>Localidad</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody class="gridtbody">
+                        <?php
+                        $pArr = $this->cobranzasList;
+                        $strBld = "";
+                        $sName = "";
+                        if (count($pArr)) 
+                        {
+                            foreach ($pArr as $pRow) 
+                            {
+                                $status = (int) $pRow->getStatus();
+                                $payedBtn = $rejBtn = '';
+                                if ($status != 3) { //is not rejected check
+                                    $payedBtn = '<img src="/images/accept.png" class="payedChequeBtn"  />';
+                                    $rejBtn = '<img src="/images/cancel.png" class="rejectChequeBtn" />';  
+                                } 
+                                else //is rejected check
+                                    $rejBtn = "<span class='ui-state-default ui-corner-all addNewGdc' title='' id='OpClientIduserid_'><span class='jq-link-btn'>Gesti&oacute;n de Cobranza</span></span>";
+                                
+                                //if rejeted balance is null means there are no payments yet so the whole check amount is still left to pay 
+                                if (!$pRow->getRejected_balance())                                
+                                    $rejectedBalance = $this->amountFormat($pRow->getAmount());
+                                else                                    
+                                    $rejectedBalance = $this->amountFormat($pRow->getRejected_balance());
+                                
+                                $name = $pRow->getFirst_name().' '.$pRow->getLast_name();                                
+                                $strBld .= <<<EOT
+				<tr id="userid_{$pRow->getId()}">
+                                    <input type="hidden" value="{$status}" name="status_id"/>
+                                    <input type="hidden" value="{$pRow->getOperation_id()}" name="operation_id"/>
+                                    <td class="user_name" id="clientId_{$pRow->getClient_id()}">{$name}</td>
+                                    <td class="user_date">{$pRow->getDate()}</td>
+                                    <td class="user_check_n">{$pRow->getCheck_n()}</td>
+                                    <td class="user_amount" style="white-space:nowrap">{$this->amountFormat($pRow->getAmount())}</td>
+                                    <td class="user_cave_name">{$pRow->getCave_name()}</td>
+                                    <td class="user_status">{$pRow->getStatus_name()}</td>
+                                    <td class="user_rejected_balance" style="white-space:nowrap">{$this->amountFormat($pRow->getBalance())}</td>
+                                    <td class="user_operation_id">{$pRow->getEmpresa()}</td>
+                                    <td class="user_zip">{$pRow->getZip()}</td>
+                                    <td class="user_localidad">{$pRow->getLocalidad()}</td>
+                                    <td class="user_actions">{$payedBtn} {$rejBtn}</td>
+				</tr>
+EOT;
+                            }
+                        }
+                        echo $strBld;
+                        ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div id="tabs-3" class="InnerTabs">
+            <div style="position:relative;">
+                <table cellpadding="0" cellspacing="0" border="0" class="display" id="grid-terceros">
+                    <thead>
+                        <tr>
+                            <th>Titular</th>
+                            <th>Cliente</th>
+                            <th>Fecha</th>
+                            <th align="right">N&uacute;mero</th>
+                            <th>Importe</th>
+                            <th>Tasa</th>
+                            <th align="center">Días</th>
+                            <th>Valor al Día</th>   
+                            <th>Estado</th>
+                            <th>Pasado a</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody class="gridtbody">
+                        <?php
+                        $pArr = $this->tercerosList;
+                        $strBld = "";
+                        $sName = "";
+                        if (count($pArr)) 
+                        {
+                            foreach ($pArr as $pRow) 
+                            {
+                                $status = (int) $pRow->getStatus();
+                                $payedBtn = $rejBtn = $clientId = $clientName = $titular = $tasa = '';
+                                switch ($status) {
+                                    case 3: //rechazado
+                                        $rejBtn = "<span class='ui-state-default ui-corner-all addNewGdc' title='' id='OpClientIduserid_'><span class='jq-link-btn'>Gesti&oacute;n de Cobranza</span></span>";
+                                        if($pRow->getBalance() == 0)
+                                            $statusName = $pRow->getStatus_name().' <span style="font-size:smaller">[saldado]</span>';
+                                        else
+                                            $statusName = $pRow->getStatus_name().' <span style="font-size:smaller">[saldo: '.$this->amountFormat($pRow->getBalance()).']</span>';
+                                        break;
+                                    case 6: //en proceso
+                                        break;
+                                    default:
+                                        $payedBtn = '<img src="/images/accept.png" class="payedChequeBtn"  />';
+                                        $rejBtn = '<img src="/images/cancel.png" class="rejectChequeBtn" />'; 
+                                        $statusName = $pRow->getStatus_name();
+                                }
+                                /*
+                                if ($status != 3)
+                                    $payedBtn = '<img src="/images/accept.png" class="payedChequeBtn"  />';
+                                    $rejBtn = '<img src="/images/cancel.png" class="rejectChequeBtn" />';
+                                
+                                if ($status == 3)
+                                    $rejBtn = "<span class='ui-state-default ui-corner-all addNewGdc' title='' id='OpClientIduserid_'><span class='jq-link-btn'>Gesti&oacute;n de Cobranza</span></span>";
+                                */
+                                
+                                $clientId = $pRow->getTercero_client_id();
+                                $clientName = $pRow->getFirst_name().' '.$pRow->getLast_name();
+                                $titular = $pRow->getTercero_first_name().' '.$pRow->getTercero_last_name();                                
+                                
+                                $pasadoA = '';
+                                if($pRow->getLiquidacion_id())
+                                    $pasadoA = "{$pRow->getCave_name()} <span style='font-size:smaller'>[Liq {$pRow->getLiquidacion_id()} {$pRow->getLiq_date()}]</span>";
+                                if($pRow->getTerceros_tasa_anual())
+                                    $tasa = $pRow->getTerceros_tasa_anual() . ' %';
+                                
+                                $strBld .= <<<EOT
+				<tr id="userid_{$pRow->getId()}">
+                                    <input type="hidden" name="status_id" value="{$status}" />
+                                    <input type="hidden" name="operation_id" value="{$pRow->getOperation_id()}" />
+                                    <!--<td class="user_id"> {$pRow->getId()} </td>-->                                    
+                                    <td class="user_titular" id="clientId_{$clientId}">{$titular}</td>
+                                    <td class="user_client_name">{$clientName}</td>
+                                    <td class="user_date">{$pRow->getDate()}</td>
+                                    <td class="user_check_n">{$pRow->getCheck_n()}</td>
+                                    <td class="user_amount" style='white-space:nowrap'>{$this->amountFormat($pRow->getAmount())}</td>
+                                    <td class="user_tasa" style='white-space:nowrap'>{$tasa} </td>
+                                    <td class="user_days" style='white-space:nowrap'>{$pRow->getTerceros_days()}</td>
+                                    <td class="user_today_value" style='white-space:nowrap'>{$this->amountFormat($pRow->getTerceros_today_value())}</td>
+                                    <td class="user_status" style='white-space:nowrap'>{$statusName}</td>
+                                    <td class="user_cave_name" style='white-space:nowrap'>{$pasadoA}</td>
+                                    <td class="user_actions">{$payedBtn} {$rejBtn}</td>
+				</tr>
+EOT;
+                            }
+                        }
+                        echo $strBld;
+                        ?>
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <?php /*
+            <div id="tabs-2" class="InnerTabs">
+
+                <form action="<?php echo $this->url(array('module' => 'gyuser', 'controller' => 'index', 'action' => 'chequesformajax'), null, true); ?>" method="post" id="chequesForm">
+                    <table class="table5p">
+                        <tr>
+                            <td>Operaci&oacute;n</td>
+                            <td> : </td>
+                            <td align="left">
+                                <span class="showOperationsSpan"></span>
+                                <input type="button" class="showOperationsBtn jqButton" value="Operaciones">
+                                <input type="hidden" name="operation_id" value="" />
+                            </td>			
+                        </tr>
+                        <tr>
+                            <td>Fecha<!-- date --></td>
+                            <td> : </td>
+                            <td>
+                                <input type="text" name="date"  class="required datepicker"/>
+
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Numero<!-- check_n --></td>
+                            <td> : </td>
+                            <td>
+                                <input type="text" name="check_n" class="required number"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Importe<!-- amount --></td>
+                            <td> : </td>
+                            <td>
+                                $ <input type="text" name="amount" maxlength="20" class="required number"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Estado<!-- status --></td>
+                            <td> : </td>
+                            <td>
+                                    
+                                <select name="status" class="statusDrpDwn required">
+                                    <option value="" selected="selected">Seleccionar</option>
+                                    <?php
+                                    echo $sListBlr;
+                                    ?>
+                                </select>
+
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="3" align="center"> <input type="submit" value="Submit" name="userSubmit" id="userSubmit" /></td>
+                        </tr>
+
+
+
+                    </table>
+
+                </form>
+
+            </div>
+        */?>
+
+    </div>
+</div>
+
+<div class="editChequePop" title="Editar Cheque">
+    <fieldset>
+        <form action="<?php echo $this->url(array('module' => 'gyuser', 'controller' => 'index', 'action' => 'chequesformajax'), null, true); ?>" method="post" id="EditChequesForm">
+            <input type="hidden" name="id" />
+            <input type="hidden" name="operation_id" />
+            <input type="hidden" name="amount" />
+            <input type="hidden" name="status" />
+            
+            <table class="editTableStyle">
+                <tr>
+                    <td>Estado<!-- status --></td>
+                    <td> : </td>
+                    <td>
+                        <span id="checkStatus" style="font-weight:bold"></span>
+                        <!--<select name="status" class="statusDrpDwn">
+                            <option value="" selected="selected">Seleccionar</option>
+                            <?php
+                            echo $sListBlr;
+                            ?>
+                        </select>-->
+                    </td>
+                </tr>
+                <tr>
+                    <td>Nro. de Operación</td>
+                    <td> : </td>
+                    <td><span id="opNumber"></span></td>
+                </tr>
+                <tr>
+                    <td>Nombre</td>
+                    <td> : </td>
+                    <td><span id="clientName"></span></td>
+                </tr>
+                <!--<tr>
+                    <td>Operaciones</td>
+                    <td> : </td>
+                    <td>
+                        <select style="display:none" name="operation_id"  class="required" disabled="disabled">
+                            <option value="" selected="selected">Seleccionar</option>
+                            <?php
+                            echo $opeBlr;
+                            ?>
+
+                        </select>
+                        <input type="hidden" name="id"  class=""/>
+                    </td>
+                </tr>-->
+                
+                <tr>
+                    <td>N. Cheque</td>
+                    <td> : </td>
+                    <td>
+                        <input type="text" name="check_n" size="4" class="required number"/>
+                        <span id="checkN"></span>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Fecha<!-- date --></td>
+                    <td> : </td>
+                    <td>
+                        <textarea class="invisibleInput"></textarea>
+                        <input type="text" name="date" size="8" class="required datepicker"/>
+                        <span id="checkDate"></span>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Importe<!-- amount --></td>
+                    <td> : </td>
+                    <td><span id="checkAmount"></span>
+                    </td>
+                </tr>
+            </table>
+
+        </form>
+    </fieldset>
+</div>
+
+<?php /*
+<div id="addOperations" title="Agregar Operaciones">
+    <fieldset>
+        <form action="<?php echo $this->url(array('module' => 'gyuser', 'controller' => 'index', 'action' => 'operationsformajax'), null, true); ?>" method="post" id="addOperationsForm">
+            <table class="table5p">
+
+                <tr>
+                    <td>Cliente<!-- client_id --></td>
+                    <td> : </td>
+                    <td>
+                        <select name="client_id"  class="required">
+                            <option value="" selected="selected">Seleccionar</option>
+
+                            <?php
+                            $cOptions = "";
+                            $clientList = $this->clientList;
+                            if (count($clientList)) {
+                                foreach ($clientList as $clientRow) {
+                                    $cId = $clientRow->getId();
+                                    $cFirstName = $clientRow->getFirst_name();
+                                    $cLastName = $clientRow->getLast_name();
+                                    $cOptions .= "<option value=\"$cId\">$cFirstName $cLastName</option>";
+                                }
+                            }
+                            echo $cOptions;
+// commit test;
+// commit test 2;
+                            ?>
+                        </select>
+                        <input type="hidden" name="id" />
+                    </td>
+                </tr>
+                <tr>
+                    <td>Fecha De Alta<!-- date --></td>
+                    <td> : </td>
+                    <td>
+                        <input type="text" name="date"  class="datepicker"/>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td>Importe<!-- amount --></td>
+                    <td> : </td>
+                    <td>
+                        $ <input type="text" name="amount" maxlength="100" class="required number"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Observaciones<!-- observations --></td>
+                    <td> : </td>
+                    <td>
+                        <input type="text" name="observations" maxlength="250" class=""/>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Informe<!-- report --></td>
+                    <td> : </td>
+                    <td>
+                        <input type="text" name="report" maxlength="250" class=""/>
+                    </td>
+                </tr>
+            </table>
+
+        </form>
+    </fieldset>
+</div>
+*/
+?>
+ 
+<!--
+<div class="ui-dialog mainMsgDiv" >
+    <div class="ui-dialog-titlebar ui-widget-header ui-corner-all ui-helper-clearfix mainMsgInnerDiv">
+        <span class="ui-dialog-title" id="mainMsg">
+            Edit User
+        </span>
+        <a href="#" class="ui-dialog-titlebar-close ui-corner-all msgClose" role="button">
+            <span class="ui-icon ui-icon-closethick">close</span></a>
+    </div>
+</div>
+-->
+
+<?php /*
+<div class="selectOperations" title="Agregar Nueva Acci&oacute;n">
+    <form action="" method="post" id="operationSelectForm">
+        <table cellpadding="0" cellspacing="0" border="0" class="display" id="operationsgrid">
+            <thead>
+                <tr>
+                    <th></th>
+                    <th>Cliente</th>			
+                    <th>Fecha De Alta</th>
+                    <th>Importe ($)</th>
+                    <th>Estado</th>
+                    <th>Observaciones</th>
+                    <th>Informe</th>
+                </tr>
+            </thead>
+            <tbody class="operationGridTBody">
+                <?php
+//xxxs
+                $clientList = $this->clientList;
+                $cNameArr = array();
+                $cOptions = "";
+                if (count($clientList)) {
+                    foreach ($clientList as $clientRow) {
+                        $cId = $clientRow->getId();
+                        $cFirstName = $clientRow->getFirst_name();
+                        $cLastName = $clientRow->getLast_name();
+                        $cOptions .= "<option value=\"$cId\">$cFirstName $cLastName</option>";
+                        $cNameArr[$cId] = array('first_name' => $cFirstName, 'last_name' => $cLastName);
+                    }
+                }
+                $pArr = $this->operationList;
+                $strBld = "";
+                if (count($pArr)) {
+                    foreach ($pArr as $pRow) {
+                        $firstname = @$cNameArr[$pRow->getClient_id()]['first_name'];
+                        $lastname = @$cNameArr[$pRow->getClient_id()]['last_name'];
+                        $strBld .= <<<EOT
+				<tr id="userid_{$pRow->getId()}">
+					<td class="user_id"> <input type="radio" name="operation_radio" value="{$pRow->getId()}"/> </td>
+					<td class="user_client_name">
+						<input class="user_client_id" type="hidden" value="{$pRow->getClient_id()}" />
+						<span class="user_first_name">{$firstname}</span>
+						&nbsp;
+						<span class="user_last_name">{$lastname}</span>
+					</td>
+					<td class="user_date">{$pRow->getDate()}</td>
+					<td class="user_amount">{$pRow->getAmount()}</td>
+					<td class="user_state">{$pRow->getOperations_state_name()}<input type="hidden" value="{$pRow->getState()}"/></td>
+					<td class="user_observations">{$pRow->getObservations()}</td>
+					<td class="user_report">{$pRow->getReport()}</td>					
+				</tr>
+EOT;
+                    }
+                }
+                echo $strBld;
+                ?>
+
+            </tbody>
+        </table>
+    </form>
+</div>
+*/?>
+
+<div  class="ShipDetails tooltipBox" title="Ship Details" style="width:300px;">
+    <form action="<?php echo $this->url(array('module' => 'gyuser', 'controller' => 'panel', 'action' => ''), null, true); ?>" method="post" id="ShipDetails">
+        <img  src="/images/cancel.png" class="toolTipCancelBtn" style="float:right;cursor:pointer">
+        <table class="table5p">
+
+            <?php
+            if ($this->admin) {
+                $admin = $this->admin;
+                //$admin	=	new Gyuser_Model_Admin();
+                $Gastos_denuncia = $admin->getGastos_denuncia();
+                $Rejected_type_1_name = $admin->getRejected_type_1_name();
+                $Gastos_rechazo = $admin->getGastos_rechazo();
+                $Rejected_type_2_name = $admin->getRejected_type_2_name();
+
+                echo
+                "<tr>
+                        <td>
+                                <input type='button' value='$Rejected_type_1_name' class='jqButton costOne' />
+                                <input type='hidden' name='gastos_denuncia' value='$Gastos_denuncia' />							
+                        </td>
+                        <td>
+                        </td>
+                        <td>
+                                <input type='button' value='$Rejected_type_2_name' class='jqButton costTwo'/>
+                                <input type='hidden' name='gastos_rechazo' value='$Gastos_rechazo' />
+                                <input type='hidden' name='cheque_id' value='' />
+                        </td>
+
+                </tr>";
+            }
+            ?>
+        </table>
+    </form>
+</div>
+
+<div class="rejected_cheques_payment tableNoHeader" title="Detalle de Gestion">
+    <fieldset>
+        <p class="dataLoading">Cargando...</p>
+        <h2>Gesti&oacute;n de Cobranza</h1>
+        <input type="hidden" name="client_id" />
+        <input type="hidden" name="rcp_status" value="" />
+        <table cellpadding="0" cellspacing="0" border="0" class="table5p whiteTable"  style="width:100%" id="gestionTable">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>N Cheque</th>
+                    <th>Importe</th>			
+                    <th>Gastos</th>
+                    <th>Total</th>
+                    <th>Saldo Pendiente</th>                    
+                    <th>Banco</th>
+                    <th>Observaciones</th>			
+                </tr>
+            </thead>
+            <tbody class="gridtbody">
+                <tr>
+                    <td></td><td>-</td><td></td><td></td><td></td><td></td><td></td><td></td>
+                </tr>	
+            </tbody>
+        </table>
+
+        <h2>Pagos a cuenta</h1>
+        <form action="" method="post" id="">
+            <table  cellpadding="0" cellspacing="0" border="0" class="table5p whiteTable"   style="width:100%" id="gestionPagoTable" >
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Importe</th>
+                        <th>A cuenta cheque N</th>
+                        <th>Importe Total</th>
+                        <th>Saldo</th>
+                    </tr>
+                </thead>
+                <tbody class="gridtbody">
+
+                    <tr>
+                        <td></td><td>-</td><td></td><td></td><td></td>
+                    </tr>
+
+                </tbody>
+            </table>
+
+            <br/>
+        </form>
+    </fieldset>
+</div>

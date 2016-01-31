@@ -1,0 +1,520 @@
+
+<link rel="stylesheet" type="text/css" href="/css/demo_table_jui.css">
+<script type="text/javascript" src="/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript" src="/js/gyevents.js"></script>
+<script type="text/javascript" src="/js/eventtypeminicruds.js"></script>
+<script type="text/javascript" src="/js/eventactionminicruds.js"></script>
+<script type="text/javascript" src="/js/jquery.validate.min.js"></script>
+
+
+<script type="text/javascript">
+    $(document).ready(function(){
+        $('.menu li:eq(5) a').addClass('current');
+    });
+</script>
+
+<?php
+$oList = $this->operations;
+$opeArr = array();
+$opeBlr = "";
+if (count($oList)) {
+    foreach ($oList as $oRow) {
+        $fn = $oRow->getOperations_first_name();
+        $amo = $oRow->getAmount();
+        $cid = $oRow->getClient_id();
+        $id = $oRow->getId();
+        $opeBlr .= "<option value='$id' firstname='$fn' amount='$amo' clientid='$cid'>$fn $amo</option>";
+        $opeArr[$id] = $fn . ' ' . $amo;
+    }
+}
+
+$sList = $this->statusList;
+$sListBlr = "";
+$sListArr = array();
+if (count($sList)) {
+    foreach ($sList as $sRow) {
+        $sId = $sRow->getId();
+        $sName = $sRow->getStatus_list();
+        $sListBlr .= "<option value=\"$sId\">$sName</option>";
+        $sListArr[$sId] = $sName;
+    }
+}
+
+$cList = $this->operator;
+if ($cList) {
+    $operatorArr = array();
+    $operatorTegs = '';
+    foreach ($cList as $cRow) {
+        $operatorTegs .= "<option value='" . $cRow->getId() . "'>" . $cRow->getName() . "</option>";
+        $operatorArr[$cRow->getId()] = $cRow->getName();
+    }
+}
+?>
+<div class="main">
+    <div id="tabs">
+        <ul>
+            <li><a href="#tabs-1" class="edTabBtn">Listado</a></li>
+            <li><a href="#tabs-2">Agregar</a></li>
+        </ul>
+        <div id="tabs-1" class="InnerTabs">
+            <div style="position:relative;">
+                <table cellpadding="0" cellspacing="0" border="0" class="display" id="grid">
+                    <thead>
+                        <tr>
+                            <th>Id</th>
+                            <th>Operaci&oacute;n</th>
+                            <th>Tipo de evento</th>
+                            <th>Acci&oacute;n</th>
+                            <th>Fecha</th>
+                            <th>Operador asignado</th>
+                            <th>Observaciones</th>
+
+                        </tr>
+                    </thead>
+                    <tbody class="gridtbody">
+                        <?php
+                        $pArr = $this->cList;
+                        $strBld = "";
+                        $sName = "";
+                        if (count($pArr)) {
+                            foreach ($pArr as $pRow) {
+
+                                //$pRow = new Gyuser_Model_Events();
+                                $operationStr = @$opeArr[$pRow->getOperation_id()];
+                                $operatorStr = @$operatorArr[$pRow->getAssigned_operator_id()];
+
+                                $strBld .= <<<EOT
+				<tr id="userid_{$pRow->getId()}">
+					<td class="user_id"> {$pRow->getId()} </td>
+					<td class="user_operation">{$operationStr}<input type="hidden" value="{$pRow->getOperation_id()}" name="operation_id"/></td>
+					<td class="user_type">{$pRow->getType_name()}<input type="hidden" value="{$pRow->getType_id()}" name="type_id"/></td>
+					<td class="user_action">{$pRow->getAction_name()}<input type="hidden" value="{$pRow->getAction_id()}" name="action_id"/></td>
+					<td class="user_schedule">{$pRow->getSchedule()}</td>
+					<td class="user_assigned_operator">{$operatorStr}<input type="hidden" value="{$pRow->getAssigned_operator_id()}" name="assigned_operator_id"/></td>
+					<td class="user_comments">{$pRow->getComments()}</td>					
+				</tr>
+EOT;
+                            }
+                        }
+                        echo $strBld;
+                        ?>
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div id="tabs-2" class="InnerTabs">
+
+            <form action="<?php echo $this->url(array('module' => 'gyuser', 'controller' => 'index', 'action' => 'eventformajax'), null, true); ?>" method="post" id="eventForm">
+                <table class="table5p">
+                    <tr>
+                        <td>Operaci&oacute;n</td>
+                        <td> : </td>
+                        <td align="left">
+                            <span class="showOperationsSpan"></span>
+                            <input type="button" class="showOperationsBtn jqButton" value="Operaciones">
+                            <input type="hidden" name="operation_id" value="" />
+                        </td>			
+                    </tr>
+                    <tr>
+                        <td>Tipo De Evento<!-- type_id --></td>
+                        <td> : </td>
+                        <td>
+                            <select name="type_id" class="required" >
+                                <option value="" selected="selected">Select</option>
+<?php
+$cList = $this->eventType;
+if ($cList) {
+    foreach ($cList as $cRow) {
+        echo "<option value='" . $cRow->getId() . "'>" . $cRow->getName() . "</option>";
+    }
+}
+
+echo '<option value="" class="addnew">Editar Listado</option>';
+?>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Acci&oacute;n<!-- action_id --></td>
+                        <td> : </td>
+                        <td>
+                            <select name="action_id" class="required" >
+                                <option value="" selected="selected">Select</option>
+<?php
+$cList = $this->eventAction;
+if ($cList) {
+    foreach ($cList as $cRow) {
+        echo "<option value='" . $cRow->getId() . "'>" . $cRow->getName() . "</option>";
+    }
+}
+
+echo '<option value="" class="addnew">Editar Listado</option>';
+?>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Fecha <!-- schedule --></td>
+                        <td> : </td>
+                        <td>
+                            <input type="text" name="schedule" maxlength="20" class="datepicker"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Operador Asignado<!-- assigned_operator_id --></td>
+                        <td> : </td>
+                        <td>
+
+                            <select name="assigned_operator_id" class="required" >
+                                <option value="" selected="selected">Select</option>
+<?php
+echo $operatorTegs;
+?>
+                            </select>
+
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Observaciones<!-- comments --></td>
+                        <td> : </td>
+                        <td>
+                            <textarea rows="3" cols="20" name="comments"></textarea>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="3" align="center"> <input type="submit" value="Submit" name="userSubmit" id="userSubmit" /></td>
+                    </tr>
+                </table>
+
+            </form>
+
+        </div>
+
+    </div>
+</div>
+<div class="editEventPop" title="Edit Eventos">
+
+    <fieldset>
+        <form action="<?php echo $this->url(array('module' => 'gyuser', 'controller' => 'index', 'action' => 'eventformajax'), null, true); ?>" method="post" id="EditEventForm">
+            <table class="table5p">
+                <tr>
+                    <td>Operaci&oacute;n</td>
+                    <td> : </td>
+                    <td align="left">
+                        <span class="showOperationsSpan"></span>
+                        <input type="button" class="editShowOperationsBtn jqButton" value="Operaciones">
+                        <input type="hidden" name="operation_id" value="" />
+                        <input type="hidden" name="id" />
+                    </td>
+                </tr>	
+                <tr>
+                    <td>Tipo De Evento<!-- type_id --></td>
+                    <td> : </td>
+                    <td>
+                        <select name="type_id" class="required" >
+                            <option value="" selected="selected">Select</option>
+<?php
+$cList = $this->eventType;
+if ($cList) {
+    foreach ($cList as $cRow) {
+        echo "<option value='" . $cRow->getId() . "'>" . $cRow->getName() . "</option>";
+    }
+}
+?>
+                        </select>
+
+
+                    </td>
+                </tr>
+                <tr>
+                    <td>Acci&oacute;n<!-- action_id --></td>
+                    <td> : </td>
+                    <td>
+                        <select name="action_id" class="required" >
+                            <option value="" selected="selected">Select</option>
+<?php
+$cList = $this->eventAction;
+if ($cList) {
+    foreach ($cList as $cRow) {
+        echo "<option value='" . $cRow->getId() . "'>" . $cRow->getName() . "</option>";
+    }
+}
+?>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Fecha <!-- schedule --></td>
+                    <td> : </td>
+                    <td>
+                        <input type="text" name="schedule" maxlength="20" class="datepicker"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Operador Asignado<!-- assigned_operator_id --></td>
+                    <td> : </td>
+                    <td>
+
+                        <select name="assigned_operator_id" class="required" >
+                            <option value="" selected="selected">Select</option>
+<?php
+echo $operatorTegs;
+?>
+                        </select>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td>Observaciones<!-- comments --></td>
+                    <td> : </td>
+                    <td>
+                        <textarea rows="3" cols="20" name="comments"></textarea>
+                    </td>
+                </tr>
+            </table>
+
+        </form>
+    </fieldset>
+
+</div>
+
+<div id="addOperations" title="Agregar Operaciones">
+    <fieldset>
+        <form action="<?php echo $this->url(array('module' => 'gyuser', 'controller' => 'index', 'action' => 'operationsformajax'), null, true); ?>" method="post" id="addOperationsForm">
+            <table class="table5p">
+
+                <tr>
+                    <td>Cliente<!-- client_id --></td>
+                    <td> : </td>
+                    <td>
+                        <select name="client_id"  class="required">
+                            <option value="" selected="selected">Select</option>
+
+<?php
+$cOptions = "";
+$clientList = $this->clientList;
+if (count($clientList)) {
+    foreach ($clientList as $clientRow) {
+        $cId = $clientRow->getId();
+        $cFirstName = $clientRow->getFirst_name();
+        $cLastName = $clientRow->getLast_name();
+        $cOptions .= "<option value=\"$cId\">$cFirstName $cLastName</option>";
+    }
+}
+echo $cOptions;
+?>
+                        </select>
+                        <input type="hidden" name="id" />
+                    </td>
+                </tr>
+                <tr>
+                    <td>Fecha De Alta<!-- date --></td>
+                    <td> : </td>
+                    <td>
+                        <input type="text" name="date"  class="datepicker"/>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td>Importe<!-- amount --></td>
+                    <td> : </td>
+                    <td>
+                        $ <input type="text" name="amount" maxlength="100" class="required number"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Observaciones<!-- observations --></td>
+                    <td> : </td>
+                    <td>
+                        <input type="text" name="observations" maxlength="250" class=""/>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Informe<!-- report --></td>
+                    <td> : </td>
+                    <td>
+                        <input type="text" name="report" maxlength="250" class=""/>
+                    </td>
+                </tr>
+            </table>
+
+        </form>
+    </fieldset>
+</div>
+
+
+
+<div class="ui-dialog mainMsgDiv" >
+    <div class="ui-dialog-titlebar ui-widget-header ui-corner-all ui-helper-clearfix mainMsgInnerDiv">
+        <span class="ui-dialog-title" id="mainMsg">
+            Editar Usuario
+        </span>
+        <a href="#" class="ui-dialog-titlebar-close ui-corner-all msgClose" role="button">
+            <span class="ui-icon ui-icon-closethick">cerrar</span></a>
+    </div>
+</div>
+
+
+<div class="selectOperations" title="Agregar Nueva Acci&oacute;n">
+    <form action="" method="post" id="operationSelectForm">
+        <table cellpadding="0" cellspacing="0" border="0" class="display" id="operationsgrid">
+            <thead>
+                <tr>
+                    <th></th>
+                    <th>Cliente</th>			
+                    <th>Fecha De Alta</th>
+                    <th>Importe ($)</th>
+                    <th>Estado</th>
+                    <th>Observaciones</th>
+                    <th>Informe</th>
+                </tr>
+            </thead>
+            <tbody class="operationGridTBody">
+<?php
+//xxxs
+$clientList = $this->clientList;
+$cNameArr = array();
+$cOptions = "";
+if (count($clientList)) {
+    foreach ($clientList as $clientRow) {
+        $cId = $clientRow->getId();
+        $cFirstName = $clientRow->getFirst_name();
+        $cLastName = $clientRow->getLast_name();
+        $cOptions .= "<option value=\"$cId\">$cFirstName $cLastName</option>";
+        $cNameArr[$cId] = array('first_name' => $cFirstName, 'last_name' => $cLastName);
+    }
+}
+$pArr = $this->operationList;
+$strBld = "";
+if (count($pArr)) {
+    foreach ($pArr as $pRow) {
+        $firstname = @$cNameArr[$pRow->getClient_id()]['first_name'];
+        $lastname = @$cNameArr[$pRow->getClient_id()]['last_name'];
+        $strBld .= <<<EOT
+				<tr id="userid_{$pRow->getId()}">
+					<td class="user_id"> <input type="radio" name="operation_radio" value="{$pRow->getId()}"/> </td>
+					<td class="user_client_name">
+						<input class="user_client_id" type="hidden" value="{$pRow->getClient_id()}" />
+						<span class="user_first_name">{$firstname}</span>
+						&nbsp;
+						<span class="user_last_name">{$lastname}</span>
+					</td>
+					<td class="user_date">{$pRow->getDate()}</td>
+					<td class="user_amount">{$pRow->getAmount()}</td>
+					<td class="user_state">{$pRow->getOperations_state_name()}<input type="hidden" value="{$pRow->getState()}"/></td>
+					<td class="user_observations">{$pRow->getObservations()}</td>
+					<td class="user_report">{$pRow->getReport()}</td>					
+				</tr>
+EOT;
+    }
+}
+echo $strBld;
+?>
+
+            </tbody>
+        </table>
+    </form>
+</div>
+<div class="addNewEventType" title="Agregar Nuevo Tipo de Evento">
+
+    <div id="AddEventTypeTabs">
+        <ul>
+            <li><a href="#AddEventTypeTabs-1" >Listado</a></li>
+            <li><a href="#AddEventTypeTabs-2" class="addEditBtn">Agregar</a></li>
+        </ul>
+        <div id="AddEventTypeTabs-1" class="InnerTabs">
+            <table cellpadding="0" cellspacing="0" border="0" class="display" id="EventTypeGrid">
+                <thead>
+                    <tr>
+                        <th>Id</th>
+                        <th>Tipo De Evento</th>			
+                    </tr>
+                </thead>
+                <tbody class="EventTypegridtbody">
+<?php
+$cList = $this->eventType;
+
+if (count($cList)) {
+    foreach ($cList as $cRow) {
+        echo "<tr id='EventActionId_" . $cRow->getId() . "'>" .
+        "<td>" . $cRow->getId() . "</td>" .
+        "<td class='td_eventType'>" . $cRow->getName() . "</td>" .
+        '</tr>';
+    }
+}
+?>
+
+                </tbody>
+            </table>
+        </div>
+        <div id="AddEventTypeTabs-2" class="InnerTabs">
+            <form  id="addNewEventTypeForm"action="<?php echo $this->url(array('module' => 'gyuser', 'controller' => 'Index', 'action' => 'addneweventtypeajax'), null, true); ?>" method="post">
+                <table class="table5p">
+                    <tr>
+                        <td>Tipo De Evento<!-- name --></td>
+                        <td> : </td>
+                        <td>
+                            <input type="text" name="name" maxlength="100"  class="required"/>
+                            <input type="hidden" name="id" />
+                        </td>
+                    </tr>
+                </table>
+
+            </form>
+        </div>
+    </div>	
+
+
+</div>
+<div class="addNewEventAction" title="Agregar Nueva Acci&oacute;n">
+
+    <div id="AddEventActionTabs">
+        <ul>
+            <li><a href="#AddEventActionTabs-1" >Listado</a></li>
+            <li><a href="#AddEventActionTabs-2" class="addEditBtn">Agregar</a></li>
+        </ul>
+        <div id="AddEventActionTabs-1" class="InnerTabs">
+            <table cellpadding="0" cellspacing="0" border="0" class="display" id="EventActionGrid">
+                <thead>
+                    <tr>
+                        <th>Id</th>
+                        <th>Acci&oacute;n</th>			
+                    </tr>
+                </thead>
+                <tbody class="EventActiongridtbody">
+<?php
+$cList = $this->eventAction;
+
+if (count($cList)) {
+    foreach ($cList as $cRow) {
+        echo "<tr id='EventActionId_" . $cRow->getId() . "'>" .
+        "<td>" . $cRow->getId() . "</td>" .
+        "<td class='td_EventAction'>" . $cRow->getName() . "</td>" .
+        '</tr>';
+    }
+}
+?>
+
+                </tbody>
+            </table>
+        </div>
+        <div id="AddEventActionTabs-2" class="InnerTabs">
+            <form  id="addNewEventActionForm"action="<?php echo $this->url(array('module' => 'gyuser', 'controller' => 'Index', 'action' => 'addneweventactionajax'), null, true); ?>" method="post">
+                <table class="table5p">
+                    <tr>
+                        <td>Acci&oacute;n<!-- name --></td>
+                        <td> : </td>
+                        <td>
+                            <input type="text" name="name" maxlength="100"  class="required"/>
+                            <input type="hidden" name="id"/>
+                        </td>
+                    </tr>
+                </table>
+
+            </form>
+        </div>
+    </div>	
+
+
+</div>

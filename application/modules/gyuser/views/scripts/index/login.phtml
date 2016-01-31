@@ -1,0 +1,230 @@
+<style>
+    body, .bg {
+        background: url("/images/old_mathematics.png") repeat scroll 0 0 #EBEFF1;
+    }
+    #login-box{        
+        background: url("/images/grey_wash_wall.png") repeat scroll 0 0 #464646;
+        text-shadow: 0 1px 0 rgba(255, 255, 255, 0.3), 0 -1px 0 rgba(0, 0, 0, 0.7);
+        padding:10px;
+        margin:0 auto;
+        font-family:arial;
+        width:300px;
+        text-align: center;
+        border-radius: 10px;
+        color:#fff;
+    }
+    
+
+    .box-shadow:after {
+        content: "";
+        display: block;
+        height: 1px;
+        left: 50%;
+        margin-left: -130px;
+        margin-top: 6px;
+        position: absolute;
+        width: 266px;
+        z-index: -1;
+        -webkit-box-shadow: 0 0 11px 5px #000000;
+           -moz-box-shadow: 0 0 11px 5px #000000;
+                box-shadow: 0 0 11px 5px #000000;
+    }
+    td {
+        color:#fff;
+    }
+    input.text {
+        border-radius: 7px;
+        padding:4px 5px;
+        font-size:12px;   
+        border:1px solid #ccc;
+        width:180px;
+    }
+    .field {
+        margin-bottom:1em;
+                
+    }
+    .field-name {
+        margin-bottom:5px;
+    }
+    #submit {        
+        background: url("/images/grey_wash_wall.png") repeat scroll 0 0 transparent;
+        border: 1px solid #ccc;
+        border-radius: 12px;
+        color: #FFFFFF;
+        font:bold 22px arial,georgia,sans-serif;
+        padding: 4px 10px;
+        text-shadow: 0 1px 1px #999999;
+        cursor:pointer;
+        
+        
+    }
+    #submit:hover { 
+        background:#ABA86F;
+    }
+    #userForm {
+        margin-left:2em;
+    }
+
+</style>
+<script>
+
+    $(document).ready(function() {
+        var pass_len = parseInt($('#pass_len').val());
+        var token = $('#token').val();
+        if (token != '') {
+            var passstr = '';
+            for (var i = 0; i <= pass_len; i++) {
+                passstr += '*';
+
+            }
+            //$('#password').val(passstr);
+            $('#remember').attr('checked', 'checked');
+            $('#submit').focus();
+        } else {
+            $('#user_name').focus();
+
+        }
+
+    });
+
+    window.onload = function() {
+        user = document.getElementById('user_name');
+        pwd = document.getElementById('password');
+        rmd = document.getElementById('remember');
+        token = document.getElementById('token');
+        submit = document.getElementById('submit');
+        user.onblur = function() {
+            checkCookie(this.value);
+        };
+        document.getElementById('userform').onsubmit = function() {
+
+            if (user.value == '' || pwd.value == '') {
+                document.getElementById('msg_tag').innerHTML = "Invalid User Name or Password";
+                return false;
+            }
+            if (rmd.checked) {
+                //setCookie(user.value,pwd.value,7);
+                setCookie("lastuser", user.value, 7);
+            }
+            return true;
+        };
+        if (getCookie("lastuser")) {
+            var cookieLastUser = getCookie("lastuser");
+            user.value = cookieLastUser;
+            checkCookie(cookieLastUser);
+        }
+
+
+    }
+    function setCookie(c_name, value, exdays)
+    {
+        var exdate = new Date();
+        exdate.setDate(exdate.getDate() + exdays);
+        var c_value = escape(value) + ((exdays == null) ? "" : "; expires=" + exdate.toUTCString());
+        document.cookie = c_name + "=" + c_value;
+    }
+    function getCookie(c_name)
+    {
+        var i, x, y, ARRcookies = document.cookie.split(";");
+        for (i = 0; i < ARRcookies.length; i++)
+        {
+            x = ARRcookies[i].substr(0, ARRcookies[i].indexOf("="));
+            y = ARRcookies[i].substr(ARRcookies[i].indexOf("=") + 1);
+            x = x.replace(/^\s+|\s+$/g, "");
+            if (x == c_name)
+            {
+                return unescape(y);
+            }
+        }
+    }
+    function checkCookie(username)
+    {
+        var pwdVal = getCookie(username);
+        if (pwdVal != null && pwdVal != "")
+        {
+            pwd.value = pwdVal;
+        }
+    }
+
+//checkCookie();
+</script>
+<div class="bg">
+    <div style="position: absolute; left: 50%; top:20%;">
+    <div style="position: relative; left: -50%; top:-20%;" id="login-box" class="box-shadow">
+        <h1>Miembros</h1>
+        <form action="<?php echo $this->url(array('module' => 'gyuser', 'controller' => 'index', 'action' => 'login'), null, true); ?>" method="post" id="userform" >
+            <div style="width:100%; text-align: left">
+                <div class="field">
+                    <div class="field-name">Email</div>
+                    <div><input type="text" name="user_name" id="user_name" class="text"/></div>
+                </div>
+                <div class="field" style="margin-bottom:2em;">
+                    <div class="field-name">Contrase&ntilde;a</div>
+                    <div><input type="password" name="password" id="password" class="text" />
+                     <input type="hidden" name="token" id="token" value="<?php if ($this->authDetail) echo $this->authDetail->getLogin_token(); ?>" />
+                     <input type="hidden" name="pass_len" id="pass_len" value="<?php if ($this->authDetail) echo $this->authDetail->getPass_length(); ?>" /></div>
+                    <div>
+                                         
+                     </div>
+                </div>
+                <div class="field">
+                    <input type="submit" id="submit" value="Entrar" /> <input type="checkbox" id="remember" name="remember"/>
+                        <label for="remember" style="font-size:14px">Recordarme</label>   
+                </div>
+                
+                <!--
+            <table style="width:100%;">
+                <tr>
+                    <td colspan="3" style="color:red;" id="msg_tag">
+                        <?php
+                        if ($this->invalid) {
+                            echo "Invalid Email or Password";
+                        }
+                        ?>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="3">
+
+                    </td>
+                </tr>
+                <tr>
+                    <td>Email</td>
+                    <td>:</td>
+                    <td><input type="text" name="user_name" id="user_name" class="text"/></td>
+                </tr>
+                <tr>
+                    <td>Contrase&ntilde;a</td>
+                    <td>:</td>
+                    <td><input type="password" name="password" id="password" class="text" />
+                        <input type="hidden" name="token" id="token" value="<?php if ($this->authDetail) echo $this->authDetail->getLogin_token(); ?>" />
+                        <input type="hidden" name="pass_len" id="pass_len" value="<?php if ($this->authDetail) echo $this->authDetail->getPass_length(); ?>" />
+
+                    </td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td></td>
+                    <td>
+                        <span style="font-size:12px;">
+                            <input type="checkbox" id="remember" name="remember"/>
+                            <label for="remember">Recordarme</label>
+                        </span>	 
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="3">
+
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="3" align="center">
+                        <input type="submit" name="submit" id="submit" value="Ingresar"/>
+                    </td>
+                </tr>
+            </table>-->
+            </div>
+        </form>
+    </div>
+    </div>
+</div>

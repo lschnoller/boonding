@@ -1,0 +1,109 @@
+
+<link rel="stylesheet" type="text/css" href="/css/demo_table_jui.css">
+
+<script type="text/javascript" src="/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript" src="/js/holidays.js"></script>
+<script type="text/javascript" src="/js/jquery.validate.min.js"></script>
+<script type="text/javascript">
+    $(document).ready(function () {
+        //$('.menu li:eq(8) a').addClass('current');
+
+
+    });
+</script>
+
+<style>
+    .cave_btn,.name_btn{
+        text-decoration: underline;
+        cursor:pointer;
+    }
+    .cTable td{
+        padding	:10px;
+        border	:1px solid #FAFAFA;
+    }
+    .cTable{
+        margin:0 !important;
+    }
+    .he1{
+        color:#4E9FC2;
+    }
+    .dateBtn{
+        margin-right:15px;
+        text-decoration: underline;
+        color:#467FD4;
+        cursor: pointer;
+
+    }
+</style>
+
+<div class="main" style="padding:20px; width:900px">
+
+
+    <div id="tabs">
+        <div id="tabs-1" class="InnerTabs">
+
+            <div class="whiteBox" style="padding:20px;clear:both;width:380px;">
+                <h1 style="clear:both;padding-bottom:10px;">Feriados</h1>
+                <form  method="post" id="gyForm" action="<?php echo $this->url(array('module' => 'gyuser', 'controller' => 'index', 'action' => 'holidaysformajax'), null, true); ?>">
+                    <table class="table5p w100 dateTable">
+                        <?php
+                        $cList = $this->clist;
+                        if (count($cList)) {
+                            $htmlStr = '';
+                            $dNone = 0;
+                            $style = 'style="display:none;"';
+                            foreach ($cList as $list) {
+                                $style = !$dNone ? $style : '';
+                                $htmlStr .= "<tr class='dateTr' id='datepicker_tr_$dNone'>
+							<td>fecha</td>
+							<td> : </td>
+							<td>
+								<input type='text' size='15' maxlength='11' value='{$list->getHoliday_date()}' name='datepicker_id_$dNone'  id='datepicker_id_$dNone' class='required datepicker' />
+								<div style='padding:5px;'>
+								<span class='addDate dateBtn'>agregar feriado</span>
+								<span class='removeDate dateBtn' $style>eliminar el d�a de fiesta</span>
+								</div>
+							</td>
+						</tr>";
+                                $dNone++;
+                            }
+                            echo $htmlStr;
+                        } else {
+                            echo '<tr class="dateTr" id="datepicker_tr_1">
+						<td>fecha</td>
+						<td> : </td>
+						<td>
+							<input type="text" size="15" maxlength="11" value="" name="datepicker_id_1"  id="datepicker_id_1" class="required datepicker" />
+							<div style="padding:5px;">		
+								<span class="addDate dateBtn">agregar feriado</span>
+								<span class="removeDate dateBtn" style="display:none;">eliminar el d�a de fiesta</span>
+							</div>		
+						</td>
+					</tr>';
+                        }
+                        ?>
+
+                    </table>
+                    <input type="submit" size="8" value="Guardar"/>
+                </form>
+
+            </div>
+
+
+
+        </div>
+    </div>
+
+</div>
+
+<div class="ui-dialog mainMsgDiv" >
+    <div class="ui-dialog-titlebar ui-widget-header ui-corner-all ui-helper-clearfix mainMsgInnerDiv">
+        <span class="ui-dialog-title" id="mainMsg">
+            Editar Usuario
+        </span>
+        <a href="#" class="ui-dialog-titlebar-close ui-corner-all msgClose" role="button">
+            <span class="ui-icon ui-icon-closethick">cerrar</span></a>
+    </div>
+</div>
+
+

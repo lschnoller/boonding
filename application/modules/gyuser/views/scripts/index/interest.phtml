@@ -1,0 +1,117 @@
+
+<link rel="stylesheet" type="text/css" href="/css/demo_table_jui.css">
+
+<script type="text/javascript" src="/js/md5-jquery.js"></script>
+<script type="text/javascript" src="/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript" src="/js/gyinterest.js"></script>
+<script type="text/javascript" src="/js/jquery.validate.min.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('.menu li:eq(4) a').addClass('current');
+    });
+
+</script>
+<div class="main" style="width:500px">
+    <div id="tabs">
+        <ul>
+            <li><a href="#tabs-1" class="edTabBtn">Listado</a></li>
+            <li><a href="#tabs-2">Agregar</a></li>		
+        </ul>
+        <div id="tabs-1">
+            <div style="position:relative;">
+                <table cellpadding="0" cellspacing="0" border="0" class="display" id="grid">
+                    <thead>
+                        <tr>
+                            <th>Id</th>
+                            <th>Tasa (%)</th>
+
+                        </tr>
+                    </thead>
+                    <tbody class="gridtbody">
+                        <?php
+                        $pArr = $this->pArr;
+                        $strBld = "";
+                        if (count($pArr)) {
+                            foreach ($pArr as $pRow) {
+                                $delUrl = $this->url(array(
+                                    'controller' => 'index',
+                                    'action' => 'index',
+                                    'id' => $pRow->getId()
+                                ));
+                                //$pRow	=	new Gyuser_Model_Plans();					    			    		
+                                $strBld .= <<<EOT
+				<tr id="userid_{$pRow->getId()}">
+					<td class="user_id"> {$pRow->getId()} </td>
+					<td class="user_Rate">{$pRow->getRate()}</td>
+				</tr>
+EOT;
+                            }
+                        }
+                        echo $strBld;
+                        ?>
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div id="tabs-2">
+            <form action="<?php echo $this->url(array('module' => 'gyuser', 'controller' => 'index', 'action' => 'interestformajax'), null, true); ?>" method="post" id="operatorForm">
+                <table class="table5p">
+
+                    <tr>
+                        <td>Tasa (%)<!-- name --></td>
+                        <td> : </td>
+                        <td>
+                            <input type="text" name="rate" size="10" maxlength="100" class="required numberCap"/>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td colspan="3" align="left"> <input type="submit" value="Submit" name="userSubmit" id="userSubmit" /></td>
+                    </tr>
+                </table>
+
+            </form>
+        </div>
+
+    </div>
+</div>
+
+
+<div id="editPopUP" title="Editar">
+    <fieldset>
+
+
+        <form action="<?php echo $this->url(array('module' => 'gyuser', 'controller' => 'index', 'action' => 'interestformajax'), null, true); ?>" method="post" id="operatorFormPop">
+            <table class="table5p">
+
+
+                <tr>
+                    <td>Tasa (%)<!-- name --></td>
+                    <td> : </td>
+                    <td>
+                        <input type="text" name="rate" size="10" maxlength="100" class="required number"/>
+                        <input type="hidden" name="id" />
+                    </td>
+                </tr>
+
+
+
+
+            </table>
+
+        </form>
+
+    </fieldset>
+
+</div>
+<div class="ui-dialog mainMsgDiv" >
+    <div class="ui-dialog-titlebar ui-widget-header ui-corner-all ui-helper-clearfix mainMsgInnerDiv">
+        <span class="ui-dialog-title" id="mainMsg">
+            Editar Usuario
+        </span>
+        <a href="#" class="ui-dialog-titlebar-close ui-corner-all msgClose" role="button">
+            <span class="ui-icon ui-icon-closethick">cerrar</span></a>
+    </div>
+</div>

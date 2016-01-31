@@ -1,0 +1,133 @@
+
+<?php
+$authDetail = $this->authDetail;
+$oprType = (int) $authDetail->getType();
+?>
+<script type="text/javascript" src="/js/fg.menu.js"></script>
+<link rel="stylesheet" href="/css/fg.menu.css" type="text/css" />
+<style>
+    #menuLog { font-size:1.4em; margin:20px; }
+    .hidden { position:absolute; top:0; left:-9999px; width:1px; height:1px; overflow:hidden; }
+    /*
+    .fg-button {         
+        border:1px solid #333;
+        color: #FEFEFE;
+        clear:left;  
+        padding: .4em 1em; 
+        text-decoration:none !important; 
+        cursor:pointer; 
+        position: relative; 
+        text-align: center; 
+        zoom: 1;         
+        background: url("/images/grey_wash_wall.png") repeat scroll 0 0 #464646;
+        text-shadow: 0 1px 0 rgba(255, 255, 255, 0.3), 0 -1px 0 rgba(0, 0, 0, 0.7);        
+    } */   
+    .fg-button { 
+        background: url("/images/profile-small.png") no-repeat scroll 0 26% #ABA86F;
+        border: 1px solid #CCCCCC;
+        color: #FFFFFF;
+        cursor: pointer;
+        font-weight: normal;
+        height: 20px;
+        margin-right: 1em;
+        padding: 9px 0 0.4em 55px;
+        position: relative;
+        text-align: center;
+        text-decoration: none !important;
+        text-shadow: 0 1px 0 rgba(255, 255, 255, 0.3), 0 -1px 0 rgba(0, 0, 1, 0.7);
+        text-transform: none;        
+    }
+    .fg-button .ui-icon { position: absolute; top: 50%; margin-top: -8px; left: 50%; margin-left: -8px; }
+    a.fg-button { float:left;  }
+    button.fg-button { width:auto; overflow:visible; } /* removes extra button width in IE */
+        
+    .fg-button-icon-left { padding-left: 2.1em; }
+    .fg-button-icon-right { padding-right: 2.1em; }
+    .fg-button-icon-left .ui-icon { right: auto; left: .2em; margin-left: 0; }
+    .fg-button-icon-right .ui-icon { left: auto; right: .2em; margin-left: 0; }
+    .fg-button-icon-solo { display:block; width:8px; text-indent: -9999px; }	 /* solo icon buttons must have block properties for the text-indent to work */	
+        
+    .fg-button.ui-state-loading .ui-icon { background: url(spinner_bar.gif) no-repeat 0 0; }
+    /*a.templateMenu {
+            text-decoration:none;
+            color:inherit;		
+            font:12px arial, sans-serif;
+    }
+    a.templateMenu:hover {
+            text-decoration:underline;
+    }
+    */
+    .header-bar {
+    }
+    .profile-pic {
+        border:1px solid #ccc;
+        margin-right:1em;
+    }
+</style>
+
+<!-- style exceptions for IE 6 -->
+<!--[if IE 6]>
+<style type="text/css">
+        .fg-menu-ipod .fg-menu li { width: 95%; }
+        .fg-menu-ipod .ui-widget-content { border:0; }
+</style>
+<![endif]-->	
+<div class="pageLoading">
+    <!--<img src="/images/icon-loading-animated.gif"/>-->
+    <img src="/images/ajax-loader.gif"/>
+</div>
+<?php
+$fname = '';
+$lname = '';
+if ($authDetail->getName()) 
+    $fname = $authDetail->getName() . ' ';
+if ($authDetail->getLast_name()) 
+    $lname = $authDetail->getLast_name() . ' ';
+
+?>
+<div class="ui-layout-north header-bar" style="margin-bottom:1em;">
+    <!--<p style="text-align:right; font:12px arial, sans-serif; margin:0; margin-right:1em; color:#022455">
+    <?php
+        //echo $fname.' '.$lname.' ';
+        ?>  
+    | <a href="/index/logout" class="templateMenu">Salir</a></p>-->
+        <a tabindex="0" href="#search-engines" class="fg-button fg-button-icon-right ui-widget ui-state-default ui-corner-all" id="flat" style="float:right;"><?=$fname?> <!--<span class="ui-icon ui-icon-triangle-1-s"></span>Configuraci&oacute;n--></a>
+           
+        <div id="search-engines" class="hidden">
+            <ul class="menu3">
+                <?php if ($oprType == 1) { ?> 
+                <li><a href="<?php echo $this->url(array('module' => 'gyuser', 'controller' => 'crm', 'action' => 'indexevents'), null, true); ?>">Configurar CRM</a></li>
+                <li><a href="<?php echo $this->url(array('module' => 'gyuser', 'controller' => 'index', 'action' => 'admin'), null, true); ?>">Datos de Configuración &amp; Proveedores</a></li>
+                <!--<li><a href="<?php echo $this->url(array('module' => 'gyuser', 'controller' => 'index', 'action' => 'changestatustopaidbytimeflow'), null,true); ?>" class="templateMenu">Actualizacion Manual de Cheques</a></li>-->
+                <li><a href="<?php echo $this->url(array('module' => 'gyuser', 'controller' => 'index', 'action' => 'operator'), null, true); ?>">Administrar Usuarios</a></li>
+                <li style="padding:10px">--------------------</li>
+                
+                <li><a href="<?php echo $this->url(array('module' => 'gyuser', 'controller' => 'index', 'action' => 'contactpoint'), null, true); ?>">Puntos de Contacto</a></li>
+                <li><a href="<?php echo $this->url(array('module' => 'gyuser', 'controller' => 'index', 'action' => 'plans'), null, true); ?>">Planes</a></li>
+                <li><a href="<?php echo $this->url(array('module' => 'gyuser', 'controller' => 'index', 'action' => 'interest'), null, true); ?>">Intereses</a></li>
+                <li><a href="<?php echo $this->url(array('module' => 'gyuser', 'controller' => 'index', 'action' => 'tasas'), null, true); ?>">Tasas Anuales</a></li>
+                <li><a href="<?php echo $this->url(array('module' => 'gyuser', 'controller' => 'index', 'action' => 'holidays'), null, true); ?>">Feriados</a></li>
+                <?php } ?> 
+                <li style="padding:10px">--------------------</li>
+                <li><a href="<?php echo $this->url(array('module' => 'gyuser', 'controller' => 'index', 'action' => 'logout'), null, true); ?>">Salir</a></li>
+                <!-- <li> <a href="/index/logout" class="templateMenu">Salir</a></li>-->
+                
+            </ul>
+        </div>
+         
+    <ul class="menu" style="padding-top:1em; padding-bottom:1em; text-align:center">
+        <li><a href="<?php echo $this->url(array('module' => 'gyuser', 'controller' => 'index', 'action' => 'dashboard'), null, true); ?>">Inicio</a></li>
+        <span style="color:#CCCCCC">&bull;</span>
+        <li><a href="<?php echo $this->url(array('module' => 'gyuser', 'controller' => 'index', 'action' => 'index'), null, true); ?>">Clientes</a></li>
+        <span style="color:#CCCCCC">&bull;</span>
+        <li><a href="<?php echo $this->url(array('module' => 'gyuser', 'controller' => 'index', 'action' => 'operations'), null, true); ?>">Operaciones</a></li>       
+        <?php 
+        if ($oprType == 1 || $oprType == 2) { ?>            
+            <span style="color:#CCCCCC">&bull;</span>
+            <li><a href="<?php echo $this->url(array('module' => 'gyuser', 'controller' => 'index', 'action' => 'cheque'), null, true); ?>">Libro de Cheques</a></li>
+            <span style="color:#CCCCCC;">&bull;</span>
+            <li><a href="<?php echo $this->url(array('module' => 'gyuser', 'controller' => 'liquidaciones', 'action' => 'providers'), null, true); ?>">Proveedores <span style="font-size:10px">beta</span></a></li>           
+        <?php } ?>
+    </ul>
+    
+</div>

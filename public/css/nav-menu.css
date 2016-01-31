@@ -1,0 +1,36 @@
+* {margin: 0; padding: 0;}
+body {
+	margin: 0; padding: 0;
+	font-family : verdana;
+	font-size : 12px;
+}
+.list{
+	margin:20 auto;
+	overflow:hidden;
+	width:200px;
+	background : #1F6A98;
+}
+#active{
+	border-top: 1px solid #399CD7;
+	border-right: 1px solid #399CD7;
+	border-bottom: 1px solid #247CB0;
+	border-left: 1px solid #247CB0;
+	cursor : pointer;
+	color : #F5F5F5;
+	display : block;
+	width : 100%;
+	background:#1B5B83 url('/images/glass_bRight.png') no-repeat left -54px;
+	
+}
+.list li a{
+	list-style:none;
+	color : #fff;
+	display : block;
+	width : 100%;
+	background:#1B5B83 url('/images/glass_bRight.png') no-repeat left 0;	
+	padding : 5px;
+	margin : 0px 2px;
+	cursor : pointer;
+	font-weight : bold;
+	text-decoration : none;	
+}

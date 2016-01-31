@@ -1,0 +1,435 @@
+
+
+<script type="text/javascript" src="/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript" src="/js/gyadmin.js"></script>
+<script type="text/javascript" src="/js/jquery.validate.min.js"></script>
+<script type="text/javascript">
+    $(document).ready(function(){
+        //$('.menu li:eq(8) a').addClass('current');
+	
+	
+    });
+</script>
+
+<style>
+    .cave_btn:hover,.name_btn:hover{
+        text-decoration: underline;
+        cursor:pointer;
+    }
+    .cTable td{
+        padding	:10px;
+        /* border:1px solid #FAFAFA;*/
+    }
+    .cTable{
+        margin:0 !important;
+    }
+    .he1{
+        color:#4E9FC2;
+    }
+    table {
+        border:1px solid transparent;
+    }
+</style>
+
+<div class="main" style="padding:20px; width:733px" align="center" >
+
+
+    <div id="tabs">
+        <div id="tabs-1" class="InnerTabs">
+            <div style="position:relative;">
+
+                <?php
+                $chk_total = '';
+                if (@$this->ctAmount) {
+                    $chk_total = $this->ctAmount;
+                } else {
+                    $chk_total = '0.00';
+                }
+                $psdo_total = '';
+                if (@$this->cpAmount) {
+                    $psdo_total = $this->cpAmount;
+                } else {
+                    $psdo_total = '0.00';
+                }
+                $psdoPrec = floatval($psdo_total) * 100 / floatval($chk_total);
+                $psdoPrec = number_format($psdoPrec, 2);
+                ?>
+
+<?php
+$id = $tiempo_ac_capital = $tiempo_ac_interior = $tiempo_ac_sistema = $gastos_denuncia = $gastos_rechazo = '';
+if (@$this->admin) {
+    $admin = $this->admin;
+    //$admin	=	new Gyuser_Model_Admin();
+
+    $id = $admin->getId();
+    $tiempo_ac_capital = $admin->getTiempo_ac_capital();
+    $tiempo_ac_interior = $admin->getTiempo_ac_interior();
+    $tiempo_ac_sistema = $admin->getTiempo_ac_sistema();
+    $gastos_denuncia = $admin->getGastos_denuncia();
+    $gastos_rechazo = $admin->getGastos_rechazo();
+    $gastos_general = $admin->getGastos_general();
+    $gastos_interior = $admin->getGastos_interior();
+    $impuesto_al_cheque = $admin->getImpuesto_al_cheque();
+    $crm_operation_notify_span = $admin->getCrm_operation_notify_span();
+}
+?>
+
+                <!--<h1 class="whiteBox" style="clear:both;width:400px;">Monto de cheques en cartera: </br><span class="he1" ><?php echo $this->amountFormat($chk_total); ?></span></h1>-->
+
+                <div class="whiteBox">
+                    <h1 style="clear:both;padding-bottom:10px;">Configuraci&oacute;n</h1>
+                    <form  method="post" id="gyForm" action="<?php echo $this->url(array('module' => 'gyuser', 'controller' => 'index', 'action' => 'gysaveajax'), null, true); ?>">
+                        <table class="table5p w100">
+
+                            <tr>
+                                <td>Gastos Denuncia</td>
+                                <td> : </td>
+                                <td>
+                                    <input type="text" size="8" maxlength="11" value="<?php echo $gastos_denuncia; ?>" name="gastos_denuncia" class="required number" /> $
+                                    <input type="hidden" name="id"  value="<?php echo $id; ?>" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Gastos Rechazo</td>
+                                <td> : </td>
+                                <td><input type="text" size="8" maxlength="11" value="<?php echo $gastos_rechazo; ?>"  name="gastos_rechazo"  class="required number" /> $</td>
+                            </tr>
+                            <tr>
+                                <td>Gastos General</td>
+                                <td> : </td>
+                                <td><input type="text" size="8" maxlength="11" value="<?php echo $gastos_general; ?>"  name="gastos_general"  class="required number" /> $</td>
+                            </tr>
+                            <tr>
+                                <td>Gastos Interior</td>
+                                <td> : </td>
+                                <td><input type="text" size="8" maxlength="11" value="<?php echo $gastos_interior; ?>"  name="gastos_interior"  class="required number" /> $</td>
+                            </tr>
+                            <tr>
+                                <td>Impuesto al Cheque</td>
+                                <td> : </td>
+                                <td><input type="text" size="8" maxlength="11" value="<?php echo $impuesto_al_cheque; ?>"  name="impuesto_al_cheque" class="required number" /> $</td>
+                            </tr>
+                            <tr>
+                                <td>Tiempo Ac. Capital</td>
+                                <td> : </td>
+                                <td><input type="text" size="8" maxlength="11"  value="<?php echo $tiempo_ac_capital; ?>"  name="tiempo_ac_capital" class="required number" /> hs</td>
+                            </tr>
+                            <tr>
+                                <td>Tiempo Ac. Interior</td>
+                                <td> : </td>
+                                <td><input type="text" size="8" maxlength="11" value="<?php echo $tiempo_ac_interior; ?>"   name="tiempo_ac_interior" class="required number" /> hs</td>
+                            </tr>
+                            <tr>
+                                <td>Tiempo Ac. Sistema</td>
+                                <td> : </td>
+                                <td><input type="text" size="8" maxlength="11"  value="<?php echo $tiempo_ac_sistema; ?>"  name="tiempo_ac_sistema" class="required number" /> hs</td>
+                            </tr>
+
+                            <tr>
+                                <td>Marcar operaciones como <br />atrasadas luego de mantener<br /> el mismo estado por:</td>
+                                <td> </td>
+                                <td>
+                                    <select name="crm_operation_notify_span" id="crm_operation_notify_span">
+                                        <?php
+                                        $span[15] = '15 Min.';
+                                        $span[30] = '30 Min.';
+                                        $span[60] = '1 hora';
+                                        $span[75] = '1 hora 15 min.';
+                                        $span[90] = '1 hora 30 min.';
+                                        $span[105] = '1 hora 45 min.';
+                                        $span[120] = '2 horas';
+                                        $span[135] = '2 horas 15 min.';
+                                        $span[150] = '2 horas 30 min.';
+                                        $span[180] = '3 horas';
+                                        $span[240] = '4 horas';
+                                        $span[300] = '5 horas';                                        
+                                        $span[480] = '8 horas';
+                                        $span[600] = '10 horas';
+                                        foreach ($span AS $key => $val) {
+                                            $selected = '';
+                                            if ($key == $crm_operation_notify_span)
+                                                $selected = 'selected="selected"';
+                                            echo '<option value="' . $key . '" ' . $selected . '>' . $val . '</option>';
+                                        }
+                                        ?>
+                                    </select>
+                                </td>
+                            </tr>
+
+
+                            <tr>
+                                <td><input type="submit" size="8" value="Guardar"/></td>
+                            </tr>
+
+
+
+                        </table>
+                    </form>
+
+                </div>
+
+                <div class="whiteBox">
+                <h1>Colegas y Proveedores</h1>
+                    <table cellpadding="0" cellspacing="0" border="0" class="display cTable" style="display:none;width:100%;" id="grid" >
+                        <tbody class="gridtbody">
+                            <?php
+                            /*
+                            $pRow = $this->cList;
+                            $strBld = "";
+                            $sName = "";
+                            //cave
+                            if (count($pRow)) { 
+                             * 
+                             */                                      
+                                /*
+                                //$pRow	=	new Gyuser_Model_SupplierOperations();
+                                $passedAmount = $pRow->getPassed_amount();
+                                $cPsdoPrec = floatval($passedAmount) * 100 / floatval($chk_total);
+                                $ciPsdoPrec = (floatval($psdo_total) > 0 ) ? floatval($passedAmount) * 100 / floatval($psdo_total) : 0;
+                                $cPsdoPrec = number_format($cPsdoPrec, 2);
+                                $ciPsdoPrec = number_format($ciPsdoPrec, 2);
+                                $rej_amount = $pRow->getRej_check_amount();
+                                $balance = $pRow->getBalance() * -1;
+                                $rej_total_amount = $rej_amount + $balance;
+                                */
+                            /*
+                                $strBld .= <<<EOT
+				<tr>
+					<td >
+							<span class="user_id cave_btn"  id="cave_{$pRow->getId()}"> <h2>{$pRow->getName()}</h2>
+							<input type="hidden" value="{$pRow->getId()}" name="id"/>
+							<input type="hidden" value="{$pRow->getName()}" name="name"/>
+							<input type="hidden" value="{$pRow->getEmail()}" name="email"/>
+							<input type="hidden" value="{$pRow->getTasa_anual()}" name="tasa_anual"/>
+							<input type="hidden" value="{$pRow->getImpuesto_al_cheque()}" name="impuesto_al_cheque"/>
+							<input type="hidden" value="{$pRow->getGastos_general()}" name="gastos_general"/>
+							<input type="hidden" value="{$pRow->getGastos_denuncia()}" name="gastos_denuncia"/>
+							<input type="hidden" value="{$pRow->getGastos_rechazo()}" name="gastos_rechazo"/>
+							<input type="hidden" value="{$pRow->getAcreditacion_capital()}" name="acreditacion_capital"/>
+							<input type="hidden" value="{$pRow->getAcreditacion_interior()}" name="acreditacion_interior"/>
+                                                            
+                                                        <input type="hidden" value="{$pRow->getGastos_cheque_menor_a_1()}" name="gastos_cheque_menor_a_1"/>
+                                                        <input type="hidden" value="{$pRow->getGastos_cheque_a_1()}" name="gastos_cheque_a_1"/>
+                                                        <input type="hidden" value="{$pRow->getGastos_cheque_menor_a_2()}" name="gastos_cheque_menor_a_2"/>
+                                                        <input type="hidden" value="{$pRow->getGastos_cheque_a_2()}" name="gastos_cheque_a_2"/>
+							
+						</span>
+						
+					</td>
+											
+				</tr>
+EOT;
+                            }
+                            echo $strBld;
+                            */
+                            
+                            //Providers list
+                            $pArr = $this->sList;
+                            $strBld = "";
+                            $sName = "";
+                            if (count($pArr)) {
+                                foreach ($pArr as $pRow) {
+                                    /*
+                                    //$pRow	=	new Gyuser_Model_SupplierOperations();				
+                                    $passedAmount = $pRow->getPassed_amount();
+                                    $psdo_total_float = floatval($psdo_total);
+                                    $cPsdoPrec = floatval($passedAmount) * 100 / floatval($chk_total);
+                                    $ciPsdoPrec = ($psdo_total_float == 0) ? 0 : floatval($passedAmount) * 100 / $psdo_total_float;
+                                    $cPsdoPrec = number_format($cPsdoPrec, 2);
+                                    $ciPsdoPrec = number_format($ciPsdoPrec, 2);
+                                    $rej_amount = $pRow->getRej_check_amount();
+                                    $balance = $pRow->getBalance() * -1;
+                                    $rej_total_amount = $rej_amount + $balance;
+                                    */
+                                    $strBld .= <<<EOT
+                                    <tr>
+					<td >
+                                            <span class="user_id name_btn"  id="userid_{$pRow->getId()}">
+                                            <h2>{$pRow->getName()}</h2> 
+                                            <input type="hidden" value="{$pRow->getId()}" name="id"/>
+                                            <input type="hidden" value="{$pRow->getName()}" name="name"/>
+                                            <input type="hidden" value="{$pRow->getEmail()}" name="email"/>
+                                            <input type="hidden" value="{$pRow->getTasa_anual()}" name="tasa_anual"/>
+                                            <input type="hidden" value="{$pRow->getImpuesto_al_cheque()}" name="impuesto_al_cheque"/>
+                                            <input type="hidden" value="{$pRow->getGastos_interior()}" name="gastos_interior"/>
+                                            <input type="hidden" value="{$pRow->getGastos_general()}" name="gastos_general"/>
+                                            <input type="hidden" value="{$pRow->getGastos_denuncia()}" name="gastos_denuncia"/>
+                                            <input type="hidden" value="{$pRow->getGastos_rechazo()}" name="gastos_rechazo"/>
+                                            <input type="hidden" value="{$pRow->getAcreditacion_capital()}" name="acreditacion_capital"/>
+                                            <input type="hidden" value="{$pRow->getAcreditacion_interior()}" name="acreditacion_interior"/>
+
+                                            <input type="hidden" value="{$pRow->getGastos_cheque_menor_a_1()}" name="gastos_cheque_menor_a_1"/>
+                                            <input type="hidden" value="{$pRow->getGastos_cheque_a_1()}" name="gastos_cheque_a_1"/>
+                                            <input type="hidden" value="{$pRow->getGastos_cheque_menor_a_2()}" name="gastos_cheque_menor_a_2"/>
+                                            <input type="hidden" value="{$pRow->getGastos_cheque_a_2()}" name="gastos_cheque_a_2"/>
+
+                                            </span>
+					</td>				
+                                    </tr>
+EOT;
+                                }
+                            }
+                            echo $strBld;
+                            ?>
+
+                        </tbody>
+                    </table>
+                    <span class="ui-state-default ui-corner-all addNewProvider jq-link-btn" title="" id="" style="float:right;cursor:pointer; padding:5px 10px">Agregar Nuevo Proveedor</span>
+                </div>
+
+
+
+
+
+            </div>
+        </div>
+
+    </div>
+</div>
+<div id="provider_details" title="Detalle de Proveedor">
+    <fieldset>
+        <form  method="post" id="plansForm" action="<?php echo $this->url(array('module' => 'gyuser', 'controller' => 'index', 'action' => 'providereditajax'), null, true); ?>">
+            <table class="table5p w100">
+                <tr id="nameTr" style="display:none;">
+                    <td>Nombre</td>
+                    <td> : </td>
+                    <td><input type="text" size="" maxlength="" name="name" class="" /></td>
+                </tr>
+                <tr>
+                    <td>Mail de Contacto</td>
+                    <td> : </td>
+                    <td><input type="text" size="30" maxlength="100" name="email" class="required email" />
+                        <input type="hidden" name="id" class="" />
+                    </td>
+                </tr>
+                <tr>
+                    <td>Tasa Annual</td>
+                    <td> : </td>
+                    <td><input type="text" size="3" maxlength="5" name="tasa_anual" class="required number" /> %</td>
+                </tr>
+                <tr>
+                    <td>Impuesto al Cheques</td>
+                    <td> : </td>
+                    <td><input type="text" size="3" maxlength="5" name="impuesto_al_cheque"  class="required number" /> %</td>
+                </tr>
+                <tr>
+                    <td>Gastos Generales</td>
+                    <td> : </td>
+                    <td><input type="text" size="3" maxlength="5"  name="gastos_general" class="required number" /> %</td>
+                </tr>
+                <tr>
+                    <td>Gastos de Interior</td>
+                    <td> : </td>
+                    <td><input type="text" size="3" maxlength="5"  name="gastos_interior" class="required number" /> %</td>
+                </tr>
+                <tr>	
+                    <td colspan="3">
+                        Gastos por cheque menor a $ <input type="text" class="number menorProv" name="gastos_cheque_menor_a_1" maxlength="8" size="5"> 
+                        Importe $ <input type="text" class="number menorProv" name="gastos_cheque_a_1" maxlength="6" size="3">
+                    </td>
+                </tr>
+                <tr>	
+                    <td colspan="3">
+                        Gastos por cheque menor a $ <input type="text" class="number menorProv" name="gastos_cheque_menor_a_2" maxlength="8" size="5"> 
+                        Importe $ <input type="text" class="number menorProv" name="gastos_cheque_a_2" maxlength="6" size="3">
+                    </td>
+                </tr>
+                <tr>
+                    <td>Gastos Denuncia</td>
+                    <td> : </td>
+                    <td>$ <input type="text" size="8" maxlength="11"  name="gastos_denuncia" class="required number" /></td>
+                </tr>
+                <tr>
+                    <td>Gastos Rechazo</td>
+                    <td> : </td>
+                    <td>$ <input type="text" size="8" maxlength="11"  name="gastos_rechazo" class="required number" /></td>
+                </tr>
+                <tr>
+                    <td>Tiempo Ac. Capital</td>
+                    <td> : </td>
+                    <td><input type="text" size="1" maxlength="3"  name="acreditacion_capital" class="required number" /> hs</td>
+                </tr>
+                <tr>
+                    <td>Tiempo Ac. Interior</td>
+                    <td> : </td>
+                    <td><input type="text" size="1" maxlength="3"  name="acreditacion_interior" class="required number" /> hs</td>
+                </tr>
+            </table>
+        </form>
+    </fieldset>
+</div>
+
+<!--
+<div id="cave_details" title="Provider details Popup">
+    <fieldset>
+        <form  method="post" id="caveForm" action="<?php echo $this->url(array('module' => 'gyuser', 'controller' => 'index', 'action' => 'caveeditajax'), null, true); ?>">
+            <table class="table5p w100">
+                <tr>
+                    <td>Mail de Contacto</td>
+                    <td> : </td>
+                    <td><input type="text" size="30" maxlength="100" name="email" class="required email" />
+                        <input type="hidden" name="id" class="" />
+                    </td>
+                </tr>
+                <tr>
+                    <td>Tasa Annual</td>
+                    <td> : </td>
+                    <td><input type="text" size="3" maxlength="5" name="tasa_anual" class="required number" /> %</td>
+                </tr>
+                <tr>
+                    <td>Impuesto al Cheques</td>
+                    <td> : </td>
+                    <td><input type="text" size="3" maxlength="5" name="impuesto_al_cheque"  class="required number" /> %</td>
+                </tr>
+                <tr>
+                    <td>Gastos Generales</td>
+                    <td> : </td>
+                    <td><input type="text" size="3" maxlength="5"  name="gastos_general" class="required number" /> %</td>
+                </tr>
+                <tr>
+                    <td colspan="3">Gastos por cheque menor a $ <input type="text" class="number menorCave" name="gastos_cheque_menor_a_1" maxlength="8" size="8"> 
+                        Importe $ <input type="text" class="number menorCave" name="gastos_cheque_a_1" maxlength="6" size="5">
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="3">Gastos por cheque menor a $ <input type="text" class="number menorCave" name="gastos_cheque_menor_a_2" maxlength="8" size="8"> 
+                        Importe $ <input type="text" class="number menorCave" name="gastos_cheque_a_2" maxlength="6" size="5">
+                    </td>
+                </tr>
+                <tr>
+                    <td>Gastos Denuncia</td>
+                    <td> : </td>
+                    <td>$ <input type="text" size="8" maxlength="11"  name="gastos_denuncia" class="required number" /></td>
+                </tr>
+                <tr>
+                    <td>Gastos Rechazo</td>
+                    <td> : </td>
+                    <td>$ <input type="text" size="8" maxlength="11"  name="gastos_rechazo" class="required number" /></td>
+                </tr>
+                <tr>
+                    <td>Tiempo Ac. Capital</td>
+                    <td> : </td>
+                    <td><input type="text" size="1" maxlength="3"  name="acreditacion_capital" class="required number" /> hs</td>
+                </tr>
+                <tr>
+                    <td>Tiempo Ac. Interior</td>
+                    <td> : </td>
+                    <td><input type="text" size="1" maxlength="3"  name="acreditacion_interior" class="required number" /> hs</td>
+                </tr>
+
+            </table>
+        </form>
+    </fieldset>
+</div>
+-->
+<div class="ui-dialog mainMsgDiv" >
+    <div class="ui-dialog-titlebar ui-widget-header ui-corner-all ui-helper-clearfix mainMsgInnerDiv">
+        <span class="ui-dialog-title" id="mainMsg">
+            Editar Usuario
+        </span>
+        <a href="#" class="ui-dialog-titlebar-close ui-corner-all msgClose" role="button">
+            <span class="ui-icon ui-icon-closethick">cerrar</span></a>
+    </div>
+</div>
+
+

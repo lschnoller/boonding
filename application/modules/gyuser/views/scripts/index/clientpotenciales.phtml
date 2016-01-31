@@ -1,0 +1,1939 @@
+<?php 
+	$authDetail	=	$this->authDetail;
+	
+?>
+
+<link rel="stylesheet" type="text/css" href="/css/demo_table_jui.css">
+<script type="text/javascript" src="/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript" src="/js/gyclient.js"></script>
+<script type="text/javascript" src="/js/clienttypeminicruds.js"></script>
+<script type="text/javascript" src="/js/contactminicruds.js"></script>
+<script type="text/javascript" src="/js/caveminicruds.js"></script>
+<script type="text/javascript" src="/js/PriorOperations.js"></script>
+<script type="text/javascript" src="/js/jquery.validate.min.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){
+	$('.menu li:eq(2) a').addClass('current');
+});
+</script>
+<style>
+    .ui-datepicker-calendar{
+            display:none;
+    }
+    .dNone{
+            display:none;
+    }
+    .detail-tables {
+            margin-bottom:.5em;
+    }
+    .whiteTable th{
+        white-space:nowrap;
+        padding: 3px 5px;
+        font-size:12px;
+    }
+    .jq-link-btn {
+        font-size:12px;
+    }
+</style>
+<div class="main">
+<div id="tabs">
+	<ul>
+		<li><a href="#tabs-2" class="edTabBtn">Listado</a></li>
+		<li><a href="#tabs-1">Agregar</a></li>
+	</ul>
+	<div id="tabs-1" class="InnerTabs">
+		<form action="<?php echo $this->url(array('module'=>'gyuser','controller'=>'index','action'=>'userformsteponeajax'),null,true); ?>" method="post" id="userForm">
+	<table>
+		
+		<tr>
+			<td>Tipo De Cliente<!-- client_type --></td>
+			<td> : </td>
+			<td>
+			
+				<select name="client_type" class="client_type required">
+					<option value="" selected="selected">Seleccionar</option>
+					<?php 
+						$cList = $this->cList;
+						$CTArr = array();
+						if(count($cList)){
+							foreach ($cList as $cRow){
+								echo "<option value='".$cRow->getId()."'>".$cRow->getName()."</option>";
+								$CTArr[$cRow->getId()] = $cRow->getName();	
+							}
+						}
+						echo '<option value="" class="addnew">Editar Listado</option>';
+					?>
+				</select>
+							
+			</td>
+		</tr>
+		<tr  id="PriorTr" class="displayNone">
+			<td>Operaciones Anteriores</td>
+			<td> : </td>
+			<td>
+				<div class="showPriorDivOnAdd smallfontDiv"></div>	
+				<input  type="button" class="addPriorBtn jqButton" value="Editar operaciones anteriores" />
+				
+			</td>
+		</tr>
+		<tr style="display:none">
+			<td>Operador<!-- operator --></td>
+			<td> : </td>
+			<td>				
+				<input type="hidden" name="operator" value="<?php echo $authDetail->getId();?>"/>
+			</td>
+		</tr>
+		<tr>
+			<td>Fecha De Alta<!-- date_added --></td>
+			<td> : </td>
+			<td>
+				<input type="text" name="date_added" class="datepicker required"/>
+			</td>
+		</tr>
+		<tr>
+			<td>Nombre<!-- first_name --></td>
+			<td> : </td>
+			<td>
+				<input type="text" name="first_name" maxlength="100" class="required nameCap"/>
+			</td>
+		</tr>
+		<tr>
+			<td>Apellido<!-- last_name --></td>
+			<td> : </td>
+			<td>
+				<input type="text" name="last_name" maxlength="100" class="required nameCap"/>
+			</td>
+		</tr>
+		<tr>
+			<td>CUIL<!-- CUIL --></td>
+			<td> : </td>
+			<td>
+				<input type="text" name="CUIL"  maxlength="13"/>
+			</td>
+		</tr>
+		<tr>
+			<td>DNI<!-- DNI --></td>
+			<td> : </td>
+			<td>
+				<input type="text" name="DNI" maxlength="8" class="number"/>
+			</td>
+		</tr>
+		<tr>
+			<td> Empresa  <!-- business --></td>
+			<td> : </td>
+			<td>
+				<input type="text" name="business" maxlength="100"  class=""/>
+				
+			</td>
+		</tr>
+		<tr>
+			<td> Cuit De Empresa  <!-- business_CUIT --></td>
+			<td> : </td>
+			<td>
+				<input type="text" name="business_CUIT" maxlength="100"  class=""/>
+				<input type="hidden" name="multi_address_json" />
+				<input type="hidden" name="multi_prior_json" />
+				
+			</td>
+		</tr>
+		<tr>
+			<td>Tel&eacute;fono Particular<!-- tel_part --></td>
+			<td> : </td>
+			<td>
+				<input type="text" name="tel_part_code"  maxlength="5" minlength="" class="onlynumbers areacode" size="6"/>
+				<input type="text" name="tel_part" maxlengthattr="9" minlength="6" value=""    class="landphone  onlynumbers"  size="12" onkeyup="return cellPhoneValid(this)"/>
+			</td>
+		</tr>
+		<tr>
+			<td>Tel&eacute;fono Laboral<!-- tel_lab --></td>
+			<td> : </td>
+			<td>
+				<input type="text" name="tel_lab_code"  maxlength="5" minlength=""  class="onlynumbers  areacode"  size="6"/>
+				<input type="text" name="tel_lab" maxlengthattr="9" minlength="6"  class="landphone onlynumbers"  size="12" onkeyup="return cellPhoneValid(this)"/>
+			</td>
+		</tr>
+		<tr>
+			<td>Tel&eacute;fono Celular<!-- tel_cell --></td>
+			<td> : </td>
+			<td>
+				<input type="text" name="tel_cell_code"  maxlength="5" minlength=""  class="onlynumbers  areacode"  size="6"/>
+				<input type="text" name="tel_cell" maxlengthattr="12" minlength="8"  size="16"  class="cellphone onlynumbers" onkeyup="return cellPhoneValid(this)"/>
+			</td>
+		</tr>
+		<tr>
+			<td>Otro Tel&eacute;fono<!-- tel_otro --></td>
+			<td> : </td>
+			<td>
+				<input type="text" name="tel_otro_code"  maxlength="5" minlength=""  class="onlynumbers  areacode"  size="6"/>
+				<input type="text" name="tel_otro" maxlengthattr="12" minlength="8"  size="16"  class="cellphone onlynumbers" onkeyup="return cellPhoneValid(this)"/>
+			</td>
+		</tr>
+		<tr>
+			<td>Email<!-- email --></td>
+			<td> : </td>
+			<td>
+				<input type="text" class="email" maxlength="100" name="email" size="26">
+			</td>
+		</tr>
+		<tr>
+			<td>Domicilios</td>
+			<td> : </td>
+			<td>
+				<div class="showAddressDivOnAdd smallfontDiv"></div>
+				<input type="button" class="addAddressBtn jqButton" value="Editar domicilios">
+			</td>
+		</tr>		
+		<tr>
+			<td>Actividad<!-- activity --></td>
+			<td> : </td>
+			<td>
+				<textarea name="activity" maxlength="250" cols="40" rows="4"  class="" ></textarea>
+			</td>
+		</tr>		
+		<tr>
+			<td>Como Nos Contact&oacute;<!-- contact_point --></td>
+			<td> : </td>
+			<td>
+				<select name="contact_point" id="ContactPointDrp" >
+					<option value="" selected="selected">Seleccionar</option>
+					<?php 
+						$cList = $this->contact;
+						$contactBlr = "";
+						$contactArr = array();
+						if(count($cList)){
+							foreach ($cList as $cRow){
+								$contactBlr .= "<option value='".$cRow->getId()."' alt='".$cRow->getTitle()."'>".$cRow->getTitle()."</option>";
+								$contactArr[$cRow->getId()] = $cRow->getTitle();	
+							}
+						}
+						echo $contactBlr;
+						echo '<option value="" class="addnew">Editar Listado</option>';
+					?>
+				</select>
+				
+			</td>
+		</tr>
+		<tr>
+			<td> Otros Datos  <!-- extra_info --></td>
+			<td> : </td>
+			<td>
+				<textarea name="extra_info" maxlength="250" cols="40" rows="4" class="" ></textarea>
+				<input type="hidden" name="user_type_id" value="2" />
+				
+			</td>
+		</tr>
+		<tr>
+			<td colspan="3" align="center"> <input type="submit" value="Siguiente" name="userSubmit" id="userSubmit" /></td>
+		</tr>
+	</table>
+
+</form>
+	</div>
+	<div id="tabs-2" class="InnerTabs">
+		<div style="position:relative;">
+		<table cellpadding="0" cellspacing="0" border="0" class="display" id="grid">
+	<thead>
+		<tr>
+			<th>Id</th>
+			<th>Estado Cliente</th>
+			<th>Nombre</th>
+			<th>Apellido</th>
+			<th>Alta</th>
+			<th>DNI</th>
+			<th>CUIL</th>
+			<th>Empresa</th>
+			<th>CUIT Empresa</th>
+			<th>Tel Part.</th>
+			<th>Tel Laboral</th>
+			<th>Tel Celular</th>			
+			<th>Tel Otro</th>
+			<th>Email</th>
+			<th>Actividad</th>
+			<th>Referencia</th>
+			<th>Otros Datos</th>
+			<th>Operador</th>			
+		</tr>
+	</thead>
+	   <tbody class="gridtbody">
+		<?php 
+				$pArr = $this->pArr;
+				$strBld = "";
+				if($pArr){
+				foreach($pArr as $pRow){
+					$delUrl = $this->url(array(
+					        'controller' => 'index',
+					        'action'     => 'index',
+							'id'		=>$pRow->getId()
+					    		));	
+					   if(@$opeArr[$pRow->getOperator()]){ 		
+					    $opeName = $opeArr[$pRow->getOperator()];				    	
+					   }else{
+					   	$opeName = "";
+					   }
+						if(@$contactArr[$pRow->getContact_point()]){ 		
+					    $conatactName = $contactArr[$pRow->getContact_point()];				    	
+					   }else{
+					   	$conatactName = "";
+					   }
+						$clientTypeId	=	@$CTArr[$pRow->getClient_type()];
+						$clientTypeName	=	@$pRow->getClient_type();
+           	
+$strBld .=  <<<EOT
+				<tr id="userid_{$pRow->getId()}">
+					<td class="user_id"> {$pRow->getId()} <input type="hidden" value="{$clientTypeName}" name="ct_id"/>
+					<input type="hidden" value="{$pRow->getContact_point()}" name="contact_id"/>
+					<input type="hidden" value="{$pRow->getActivity()}" name="activity"/>
+					<input type="hidden" value="{$pRow->getExtra_info()}" name="extra_info"/></td>
+					<td class="user_client_type">{$clientTypeId}<input type="hidden" value="{$clientTypeName}" name="ct_id"/></td>
+					<td class="user_first_name">{$pRow->getFirst_name()}</td>
+					<td class="user_last_name">{$pRow->getLast_name()}</td>
+					<td class="user_date_added">{$pRow->getDate_added()}</td>
+					<td class="user_DNI">{$pRow->getDNI()}</td>
+					<td class="user_CUIL">{$pRow->getCUIL()}</td>
+					<td class="user_business" style="white-space:nowrap">{$pRow->getBusiness()}</td>
+					<td class="user_business_CUIT">{$pRow->getBusiness_CUIT()}</td>
+					<td class="user_tel_part">
+									<span class="area_code_inp">{$pRow->getTel_part_code()}</span>
+									<span class="number_inp">{$pRow->getTel_part()}</span>
+					</td>
+					<td class="user_tel_lab">
+									<span class="area_code_inp">{$pRow->getTel_lab_code()}</span>
+									<span class="number_inp">{$pRow->getTel_lab()}</span>
+					</td>
+					<td class="user_tel_cell">
+									<span class="area_code_inp">{$pRow->getTel_cell_code()}</span> 
+									<span class="number_inp">{$pRow->getTel_cell()}</span>
+					</td>
+					<td class="user_tel_otro">
+									<span class="area_code_inp">{$pRow->getTel_otro_code()}</span>
+									<span class="number_inp">{$pRow->getTel_otro()}</span>
+					</td>
+					<td class="user_email">{$pRow->getEmail()}</td>
+					<td class="user_activity">{$pRow->getActivity()}</td>
+					<td class="user_contact_point">{$conatactName}<input type="hidden" value="{$pRow->getContact_point()}" name="contact_point_id"/></td>
+					<td class="user_extra_info">{$pRow->getExtra_info()}</td>
+					<td class="user_operator">{$opeName}<input type="hidden" value="{$pRow->getOperator()}" name="ct_id"/></td>
+
+				</tr>
+EOT;
+				    		
+		}
+				}
+		echo $strBld;
+		?>
+            
+    </tbody>
+</table>
+</div>
+
+	</div>
+	
+</div>
+</div>
+<div id="editPopUP" title="Editar Usuario">
+	
+
+	
+	<fieldset>
+		
+		
+		<form method="post" id="userFormPop" action="<?php echo  $this->url(array('module'=>'gyuser','controller' => 'index','action' => 'userformsteponeajax'),"default",true); ?> " >
+					<table>
+		<tr>
+			<td valign="top">Tipo De Cliente<!-- client_type --></td>
+			<td> : </td>
+			<td>
+				<select name="client_type" class="client_type" class="required">
+					<option value="" selected="selected">Seleccionar</option>
+					<?php 
+						$cList = $this->cList;
+						$CTArr = array();
+						foreach ($cList as $cRow){
+							echo "<option value='".$cRow->getId()."'>".$cRow->getName()."</option>";
+							$CTArr[$cRow->getId()] = $cRow->getName();	
+						}						
+					?>
+				</select>
+				<input type="hidden" name="id"/>
+				
+			</td>
+		</tr>
+		<tr  id="EditPriorTr" class="displayNone">
+			<td>Operaciones Anteriores</td>
+			<td> : </td>
+			<td>
+				<div id="showPriorDiv" class="smallfontDiv"></div>
+				<input type="button" class="editPriorBtn jqButton" value="Editar operaciones anteriores"/>
+			</td>
+		</tr>
+		<tr style="display:none">
+			<td>Operador<!-- operator --></td>
+			<td> : </td>
+			<td>
+				
+				<input type="hidden" name="operator" value="<?php echo $authDetail->getId();?>"/>
+			</td>
+		</tr>
+		
+		<tr>
+			<td>Nombre<!-- first_name --></td>
+			<td> : </td>
+			<td>
+				<input type="text" name="first_name" maxlength="100" class="required nameCap"/>
+			</td>
+		</tr>
+		<tr>
+			<td>Apellido<!-- last_name --></td>
+			<td> : </td>
+			<td>
+				<input type="text" name="last_name" maxlength="100" class="required nameCap"/>
+			</td>
+		</tr>
+		<tr>
+			<td>CUIL<!-- CUIL --></td>
+			<td> : </td>
+			<td>
+				<input type="text" name="CUIL" maxlength="13" />
+			</td>
+		</tr>
+		<tr>
+			<td>DNI<!-- DNI --></td>
+			<td> : </td>
+			<td>
+				<input type="text" name="DNI" maxlength="8" class="number"/>
+			</td>
+		</tr>
+		<tr>
+			<td> Empresa  <!-- business --></td>
+			<td> : </td>
+			<td>
+				<input type="text" name="business" maxlength="100"  class=""/>
+				
+			</td>
+		</tr>
+		<tr>
+			<td> Cuit De Empresa  <!-- business_CUIT --></td>
+			<td> : </td>
+			<td>
+				<input type="text" name="business_CUIT" maxlength="100"  class=""/>
+				
+			</td>
+		</tr>
+		<tr>
+			<td>Tel&eacute;fono Particular<!-- tel_part --></td>
+			<td> : </td>
+			<td>
+				<input type="text" name="tel_part_code"  maxlength="5" minlength="" class="onlynumbers areacode" size="6" style="width:50px"/>
+				<input type="text" name="tel_part" maxlength="9" minlength="6" value=""    class="landphone  onlynumbers"  size="12" style="width:200px"/>
+			</td>
+		</tr>
+		<tr>
+			<td>Tel&eacute;fono Laboral<!-- tel_lab --></td>
+			<td> : </td>
+			<td>
+				<input type="text" name="tel_lab_code"  maxlength="5" minlength=""  class="onlynumbers  areacode"  size="6" style="width:50px"/>
+				<input type="text" name="tel_lab" maxlength="9" minlength="6"  class="landphone onlynumbers"  size="12" style="width:200px"/>
+			</td>
+		</tr>
+		<tr>
+			<td>Tel&eacute;fono Celular<!-- tel_cell --></td>
+			<td> : </td>
+			<td>
+				<input type="text" name="tel_cell_code"  maxlength="5" minlength=""  class="onlynumbers  areacode"  size="6" style="width:50px"/>
+				<input type="text" name="tel_cell" maxlength="12" minlength="8"  size="16"  class="cellphone onlynumbers" style="width:200px"/>
+			</td>
+		</tr>
+		<tr>
+			<td>Otro Tel&eacute;fono<!-- tel_otro --></td>
+			<td> : </td>
+			<td>
+				<input type="text" name="tel_otro_code"  maxlength="5" minlength=""  class="onlynumbers  areacode"  size="6"  style="width:50px"/>
+				<input type="text" name="tel_otro" maxlength="12" minlength="8"  size="16"  class="cellphone onlynumbers" style="width:200px"/>
+			</td>
+		</tr>
+		<tr>
+			<td>Email<!-- email --></td>
+			<td> : </td>
+			<td>
+				<input type="text" name="email" maxlength="100"  class="email" size="26"/>
+			</td>
+		</tr>
+		<tr>
+			<td>Domicilio</td>
+			<td> : </td>
+			<td>
+				<div id="showAddressDiv"  class="smallfontDiv">
+					
+				</div>
+				<input type="button" class="editAddressBtn jqButton" value="Editar domicilios"/>
+			</td>
+		</tr>
+	
+		<tr>
+			<td>Actividad<!-- activity --></td>
+			<td> : </td>
+			<td>
+				<textarea name="activity" maxlength="250" cols="40" rows="4"  class="" ></textarea>
+			</td>
+		</tr>
+		<tr>
+			<td>Fecha De Alta<!-- date_added --></td>
+			<td> : </td>
+			<td>
+				<input type="text" name="date_added" class="datepicker required"/>
+			</td>
+		</tr>
+		
+		<tr>
+			<td>Como Nos Contact&oacute;<!-- contact_point --></td>
+			<td> : </td>
+			<td>
+				<select name="contact_point" >
+					<option value="" selected="selected">Seleccionar</option>
+					<?php 
+						echo $contactBlr;
+					?>
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<td>Otros Datos<!-- extra_info --></td>
+			<td> : </td>
+			<td>
+				<textarea name="extra_info" maxlength="250" cols="40" rows="4" class="" ></textarea>
+				<input type="hidden" name="user_type_id" value="2" />
+				
+			</td>
+		</tr>
+	</table>
+				
+				</form>
+		
+	</fieldset>
+	
+</div>
+<div class="confirm-add-user" title="Agregar Cuenta Bancaria">
+	
+	<fieldset>
+	<form  id="userBankForm"action="<?php echo $this->url(array('module'=>'gyuser','controller'=>'Index','action'=>'userbankformajax'),null,true); ?>" method="post">
+	<table>
+		 <tr>
+			<td>Banco<!-- bank_name --></td>
+			<td> : </td>
+			<td>
+				<input type="hidden" name="user_id"  />
+				<input type="hidden" name="addType" value="add"  />
+				<input type="text" name="bank_name" maxlength="100"  class="required"/>
+			</td>
+		</tr>
+		<tr>
+			<td>Sucursal<!-- branch --></td>
+			<td> : </td>
+			<td>
+				<input type="text" maxlength="100" name="branch" class=""/>
+			</td>
+		</tr>
+		<tr>
+			<td>C.P.<!-- opening_date --></td>
+			<td> : </td>
+			<td>
+				<input type="text" maxlength="10" name="zip_code" class="number"/>				
+			</td>
+		</tr>
+		<tr>
+						<td>Location<!-- state --></td>
+						<td> : </td>
+						<td>
+							<input type="radio" value="1" name="location_capital" id="location_capital_1" checked="checked"/>
+							<label for="location_capital_1">Capital y GBA</label>
+							<input type="radio" value="2" name="location_capital" id="location_capital_2"/>
+							<label for="location_capital_2">Interior</label>	
+						</td>
+					</tr>
+		<tr>
+			<td>Nro. de Cuenta<!-- account_n --></td>
+			<td> : </td>
+			<td>
+				<input type="text" name="account_n" maxlength="100"  class="required"/>
+			</td>
+		</tr>		
+		<tr>
+			<td>Fecha de Alta<!-- opening_date --></td>
+			<td> : </td>
+			<td>
+				<input type="text" maxlength="100" name="opening_date" class="datepickerMY"/>				
+			</td>
+		</tr>
+						
+	</table>
+</form>
+</fieldset>
+</div>
+<div class="add-new-user" title="Cuentas Bancarias">
+	<fieldset style="margin-top:7px">
+		<h2><span style="color:green">Cuenta guardada satisfactoriamente.</span> Desea agregar otra cuenta?</h2>
+	</fieldset>
+</div>
+<div class="add-new-client" title="Agregar Nuevo Cliente">
+	
+<div id="AddClientTypeTabs">
+	<ul>
+		<li><a href="#AddClientTypeTabs-1" >Listado</a></li>
+		<li><a href="#AddClientTypeTabs-2" class="addEditBtn">Agregar</a></li>
+	</ul>
+	<div id="AddClientTypeTabs-1" class="InnerTabs">
+		<table cellpadding="0" cellspacing="0" border="0" class="display" id="ClientTypeGrid">
+	<thead>
+		<tr>
+			<th>Id</th>
+			<th width="200">Tipo De Cliente</th>			
+		</tr>
+	</thead>
+	   <tbody class="ClientTypegridtbody">
+		<?php 
+			$cList = $this->cList;
+			
+			if(count($cList)){
+				foreach ($cList as $cRow){
+					echo "<tr id='clientTypeId_".$cRow->getId()."'>".
+							"<td>".$cRow->getId()."</td>".
+							"<td class='clientTypeName'>".$cRow->getName()."</td>".							
+						 '</tr>';	
+						
+				}
+			}
+			
+		?>
+            
+    </tbody>
+</table>
+	</div>
+	<div id="AddClientTypeTabs-2" class="InnerTabs">
+	<form  id="addNewClientForm"action="<?php echo $this->url(array('module'=>'gyuser','controller'=>'Index','action'=>'addnewclientajax'),null,true); ?>" method="post">
+		<table class="table5p">
+			 <tr>
+				<td>Clientes<!-- client --></td>
+				<td> : </td>
+				<td>
+					<input type="text" name="client" maxlength="100"  class="required"/>
+					<input type="hidden" name="id"/>
+				</td>
+			</tr>		
+		</table>
+	</form>
+	</div>
+</div>	
+	
+
+</div>
+<div class="edit-bank-details" title="Editar Cuenta Bancaria">
+	
+	<fieldset>
+	<form  id="editBankForm"action="<?php echo $this->url(array('module'=>'gyuser','controller'=>'Index','action'=>'userbankformajax'),null,true); ?>" method="post">
+	<table class="table5p">
+		 <tr>
+			<td>Banco<!-- bank_name --></td>
+			<td> : </td>
+			<td>
+				<input type="hidden" name="user_id"  />
+				<input type="hidden" name="id"  />
+				<input type="text" name="bank_name" maxlength="100"  class="required"/>
+			</td>
+		</tr>
+		<tr>
+			<td>Sucursal<!-- branch --></td>
+			<td> : </td>
+			<td>
+				<input type="text" maxlength="100" name="branch" class=""/>
+			</td>
+		</tr>
+		<tr>
+			<td>C.P.<!-- opening_date --></td>
+			<td> : </td>
+			<td>
+				<input type="text" maxlength="10" name="zip_code" class="number"/>				
+			</td>
+		</tr>
+		<tr>
+						<td>Location<!-- state --></td>
+						<td> : </td>
+						<td>
+							<input type="radio" value="1" name="location_capital" id="location_capital_1_e"/>
+							<label for="location_capital_1_e">Capital y GBA</label>
+							<input type="radio" value="2" name="location_capital" id="location_capital_2_e"/>
+							<label for="location_capital_2_e">Interior</label>	
+						</td>
+					</tr>
+		
+		<tr>
+		<tr>
+			<td>Nro. de Cuenta<!-- account_n --></td>
+			<td> : </td>
+			<td>
+				<input type="text" name="account_n" maxlength="100"  class="required"/>
+			</td>
+		</tr>
+		
+		<tr>
+			<td>Fecha de Alta<!-- opening_date --></td>
+			<td> : </td>
+			<td>
+				<input type="text" maxlength="100" name="opening_date" class="datepickerMY"/>
+			</td>
+		</tr>
+		
+
+		
+		
+	</table>
+
+</form>
+</fieldset>
+</div>
+<div class="addNewOperatorPop" title="Editar Operador">
+	
+	<fieldset>
+	<form action="<?php echo $this->url(array('module'=>'gyuser','controller'=>'index','action'=>'operatorformajax'),null,true); ?>" method="post" id="operatorForm">
+	<table class="table5p">
+		
+		<tr>
+			<td>Nombre<!-- name --></td>
+			<td> : </td>
+			<td>
+				<input type="text" name="name" maxlength="100" class="required"/>
+			</td>
+		</tr>
+		<tr>
+			<td>Apellido<!-- last_name --></td>
+			<td> : </td>
+			<td>
+				<input type="text" name="last_name" maxlength="100" class="required"/>
+			</td>
+		</tr>
+		<tr>
+			<td>Email<!-- email --></td>
+			<td> : </td>
+			<td>
+				<input type="text" name="email" maxlength="100" class="required email"/>
+			</td>
+		</tr>
+		<tr>
+			<td>Contrase&ntilde;a<!-- password --></td>
+			<td> : </td>
+			<td>
+				<input type="password" name="password" maxlength="100" class="required"/>
+			</td>
+		</tr>
+		
+		
+		
+	</table>
+
+</form>
+</fieldset>
+</div>
+
+<div class="addAddressPop" title="Editar domicilios">
+
+	<div id="addressTab-1">
+	<form action="" method="post" id="AddNewAddressForm">
+		<div class="address_main_div">	
+			<span class="address_span">
+				<table class="table5p">
+					<tr>
+						<td>Domicilio<!-- street --></td>
+						<td> : </td>
+						<td>
+							<input type="text" name="street" maxlength="100" class="required" size="30"/>
+							
+						</td>
+					</tr>		
+					<tr>
+						<td>Barrio<!-- city --></td>
+						<td> : </td>
+						<td>
+							<input type="text" name="city" maxlength="100" class=""/>
+						</td>
+					</tr>
+					<tr>
+						<td>C.P.<!-- zip_code --></td>
+						<td> : </td>
+						<td>
+							<input type="text" name="zip_code" maxlength="8" class="digit number"/>
+						</td>
+					</tr>
+					<tr>
+						<td>Provincia<!-- state --></td>
+						<td> : </td>
+						<td>
+							<select class="required state_select" id="stateselect_1">
+								<option value="" >Seleccionar</option>
+								<?php 
+									$cList = $this->stateBD;
+									$CTArr = array();
+									
+									if(count($cList)){
+										foreach ($cList as $cRow){
+											$value	=	$cRow->getName();
+											if($value	==	'Capital'){
+												$selected = ' selected="selected"';			
+											}else{
+												$selected = '';
+											}
+											echo "<option value='".$cRow->getId()."' $selected>".$value."</option>";
+											if($selected != ''){
+												$selected	=	'';
+											}								
+										}	
+									}							
+								?>
+							</select>
+							
+						</td>
+					</tr>
+					<tr>
+						<td>Tipo de Domicilio<!-- address_type --></td>
+						<td> : </td>
+						<td>
+							<select  name="address_type">
+								<option value="" >Seleccionar</option>
+								<option value="laboral" >Laboral</option>
+								<option value="personal" >Personal</option>								
+							</select>
+							
+						</td>
+					</tr>
+					<tr>
+						<td>Env&iacute;o<!-- delivery_address --></td>
+						<td> : </td>
+						<td>
+							<input type="radio" name="delivery_address" class="required"/>
+							<input type="hidden" name="id"/>
+							<input type="button" align="right" class="deleteAddress jqButton" value="Borrar"/>
+						</td>
+					</tr>
+					<tr>
+						<td colspan="3" align="center">
+							
+						</td>
+							
+					</tr>
+				</table>
+				
+			</span>	
+		</div>
+	</form>	
+	</div>
+	<div id="addressTab-2">
+	</div>
+	
+
+
+</div>
+
+<div class="editAddressPop" title="Editar Domicilios">
+
+	
+	<form action="" method="post" id="EditAddressForm">
+		<div class="edit_address_main_div">	
+			
+		</div>
+		<input type="hidden" name="client_id"/>
+	</form>	
+</div>
+
+
+</div>
+	<div class="addPriorOperationsPop" title="Editar Operaciones Anteriores">
+	
+	<form action="" id="AddPriorForm" method="post">
+	<div class="prior_main_div">	
+			<span class="prior_span">
+		<table class="table5p">
+					<tr>
+						<td>Fecha<!-- date --></td>
+						<td> : </td>
+						<td>
+							<input type="text" name="date" maxlength="100" class="datepicker"/>	
+							<input type="hidden" name="id"/>						
+						</td>
+					</tr>		
+					<tr>
+						<td>Ya realiz&oacute; operaci&oacute;n?<!-- is_operation_completed --></td>
+						<td> : </td>
+						<td>
+							<input type="radio" name="is_operation_completedW0" value="1" class=""/> SI 
+							&nbsp;&nbsp;
+							<input type="radio" name="is_operation_completedW0" value="0" class="" checked="checked"/> NO
+						</td>
+					</tr>
+					<tr>
+						<td>Con qui&eacute;n?<!-- cave_name --></td>
+						<td> : </td>
+						<td>
+							<select name="cave_name" >
+								<option value="" selected="selected">Seleccionar</option>
+									<?php 
+										$cList = $this->cave;
+										$opeArr = array();
+										if(count($cList)){
+											foreach ($cList as $cRow){
+												echo "<option value='".$cRow->getId()."'>".$cRow->getName()."</option>";
+												$opeArr[$cRow->getId()] = $cRow->getName();	
+											}
+										}
+										echo '<option value="" class="addnew">Editar Listado</option>';
+										
+										
+									?>
+							</select>
+							
+						</td>
+					</tr>
+					<tr>
+						<td>Importe<!-- amount --></td>
+						<td> : </td>
+						<td>
+							$ <input type="text" name="amount" class="number"/>
+							
+						</td>
+					</tr>
+					<tr>
+						<td>Fecha pr&oacute;ximo cheque<!-- next_check_date --></td>
+						<td> : </td>
+						<td>
+							<input type="text" name="next_check_date" class="datepicker"/>
+							
+						</td>
+					</tr>
+					<tr>
+						<td>Cheques pendientes<!-- pending_checks --></td>
+						<td> : </td>
+						<td>
+							<input type="text" name="pending_checks" class="number" maxlength="7"/>
+							
+						</td>
+					</tr>
+					<tr>
+						<td>&Uacute;ltima operaci&oacute;n<!-- is_last_operation --></td>
+						<td> : </td>
+						<td>
+							<input type="checkbox" name="is_last_operation" class=""/>
+							
+						</td>
+					</tr>
+					<tr>
+						<td colspan="3" align="center">
+							<input  type="button" class="deletePrior jqButton" value="Borrar"/>
+						</td>
+							
+					</tr>
+					
+				</table>
+				</span>
+			</div>	
+		</form>
+				
+		
+	</div>
+<div class="ui-dialog mainMsgDiv" >
+<div class="ui-dialog-titlebar ui-widget-header ui-corner-all ui-helper-clearfix mainMsgInnerDiv">
+	<span class="ui-dialog-title" id="mainMsg">
+	Editar Usuario
+</span>
+<a href="#" class="ui-dialog-titlebar-close ui-corner-all msgClose" role="button">
+<span class="ui-icon ui-icon-closethick">cerrar</span></a>
+</div>
+</div>
+<div class="ui-dialog ajaxMsgDiv" >
+<div class="ui-dialog-titlebar ui-widget-header ui-corner-all ui-helper-clearfix ajaxMsgInnerDiv">
+	<span class="ui-dialog-title" id="mainMsg">
+	Por favor espere...
+</span>
+<a href="#" class="ui-dialog-titlebar-close ui-corner-all msgClose" role="button">
+<span class="ui-icon ui-icon-closethick">cerrar</span></a>
+</div>
+</div>
+<span class="address_defale_span" style="display:none;">
+				<table class="table5p">
+					<tr>
+						<td>Domicilio<!-- street --></td>
+						<td> : </td>
+						<td>
+							<input type="text" name="street" maxlength="100" class="required" size="30"/>							
+						</td>
+					</tr>		
+					<tr>
+						<td>Barrio<!-- city --></td>
+						<td> : </td>
+						<td>
+							<input type="text" name="city" maxlength="100" class=""/>
+						</td>
+					</tr>
+					<tr>
+						<td>C.P.<!-- zip_code --></td>
+						<td> : </td>
+						<td>
+							<input type="text" name="zip_code" maxlength="8" class="digit number"/>
+						</td>
+					</tr>
+					<tr>
+						<td>Provincia<!-- state --></td>
+						<td> : </td>
+						<td>
+							<select class="required state_select" id="stateselect_2">
+								<option value="" >Seleccionar</option>
+								<?php 
+									$cList = $this->stateBD;
+									$CTArr = array();
+									if(count($cList)){
+										foreach ($cList as $cRow){
+											$value	=	$cRow->getName();
+											if($value	==	'Capital'){
+												$selected = ' selected="selected"';			
+											}else{
+												$selected = '';
+											}
+											echo "<option value='".$cRow->getId()."' $selected>".$value."</option>";
+											if($selected != ''){
+													$selected	=	'';
+											}								
+										}
+									}
+																		
+								?>
+							</select>
+							
+						</td>
+					</tr>
+					<tr>
+						<td>Tipo de Domicilio<!-- address_type --></td>
+						<td> : </td>
+						<td>
+							<select name="address_type">
+								<option value="" >Seleccionar</option>
+								<option value="laboral" >Laboral</option>
+								<option value="personal" >Personal</option>								
+							</select>
+							
+						</td>
+					</tr>
+					<tr>
+						<td>Env&iacute;o<!-- delivery_address --></td>
+						<td> : </td>
+						<td>
+							<input type="radio" name="delivery_address" class="required"/>
+							<input type="hidden" name="id"/>
+							<input type="button" align="right" class="deleteAddress jqButton" value="Borrar"/>
+						</td>
+					</tr>
+					<tr>
+						<td colspan="3" align="center">
+							
+						</td>
+							
+					</tr>
+					
+				</table>
+				
+</span>	
+<span class="prior_default_span" style="display:none;">
+				<table class="table5p">
+					<tr>
+						<td>Fecha<!-- date --></td>
+						<td> : </td>
+						<td>
+							<input type="text" name="date" maxlength="100" class="datepicker"/>	
+							<input type="hidden" name="id"/>						
+						</td>
+					</tr>		
+					<tr>
+						<td>Ya realiz&oacute; operaci&oacute;n?<!-- is_operation_completed --></td>
+						<td> : </td>
+						<td>
+							<input type="radio" name="is_operation_completed" value="1" class=""/> SI 
+							&nbsp;&nbsp;
+							<input type="radio" name="is_operation_completed" value="0" class="" checked="checked"/> NO
+						</td>
+					</tr>
+					<tr>
+						<td>Con qui&eacute;n?<!-- cave_name --></td>
+						<td> : </td>
+						<td>
+							<select name="cave_name" >
+								<option value="" selected="selected">Seleccionar</option>
+									<?php 
+										$cList = $this->cave;
+										$opeArr = array();
+										foreach ($cList as $cRow){
+											echo "<option value='".$cRow->getId()."'>".$cRow->getName()."</option>";
+											$opeArr[$cRow->getId()] = $cRow->getName();	
+										}
+										echo '<option value="" class="addnew">Editar Listado</option>';
+										
+										
+									?>
+							</select>
+							
+						</td>
+					</tr>
+					<tr>
+						<td>Importe<!-- amount --></td>
+						<td> : </td>
+						<td>
+							$ <input type="text" name="amount" class="number"/>
+							
+						</td>
+					</tr>
+					<tr>
+						<td>Fecha pr&oacute;ximo cheque<!-- next_check_date --></td>
+						<td> : </td>
+						<td>
+							<input type="text" name="next_check_date" class="datepicker"/>
+							
+						</td>
+					</tr>
+					<tr>
+						<td>Cheques pendientes<!-- pending_checks --></td>
+						<td> : </td>
+						<td>
+							<input type="text" name="pending_checks" class="number" maxlength="7"/>
+							
+						</td>
+					</tr>
+					<tr>
+						<td>&Uacute;ltima operaci&oacute;n<!-- is_last_operation --></td>
+						<td> : </td>
+						<td>
+							<input type="checkbox" name="is_last_operation" class=""/>
+							
+						</td>
+					</tr>
+					<tr>
+						<td colspan="3" align="center">
+							<input type="button" class="deletePrior jqButton" value="Borrar"/>
+						</td>
+							
+					</tr>
+					
+				</table>
+				
+</span>	
+
+<div class="editPriorPop" title="Editar Operaciones Anteriores">
+
+	
+	<form action="" method="post" id="EditPriorForm">
+		<div class="edit_prior_main_div">	
+			
+		</div>
+		<input type="hidden" name="client_id"/>
+	</form>	
+</div>
+
+				
+<div class="addNewContactPop" title="Agregar Nueva Forma de Contacto">
+	
+<div id="AddContactTabs">
+	<ul>
+		<li><a href="#AddContactTabs-1" >Listado</a></li>
+		<li><a href="#AddContactTabs-2" class="addEditBtn">Agregar</a></li>
+	</ul>
+	<div id="AddContactTabs-1" class="InnerTabs">
+		<table cellpadding="0" cellspacing="0" border="0" class="display" id="ContactGrid">
+	<thead>
+		<tr>
+			<th>Id</th>
+			<th>Como Nos Contact&oacute;</th>
+			<th>Descripci&oacute;on</th>			
+		</tr>
+	</thead>
+	   <tbody class="Contactgridtbody">
+		<?php 
+			$cList = $this->contact;
+			
+			
+			if(count($cList)){
+				foreach ($cList as $cRow){
+					echo "<tr id='contactId_".$cRow->getId()."'>".
+							"<td>".$cRow->getId()."</td>".
+							"<td class='contact_name'>".$cRow->getTitle()."</td>".
+							"<td class='contact_desc'>".$cRow->getDescription()."</td>".
+						 '</tr>';	
+						
+				}
+			}
+			
+		?>
+            
+    </tbody>
+</table>
+	</div>
+	<div id="AddContactTabs-2" class="InnerTabs">
+	<form action="<?php echo $this->url(array('module'=>'gyuser','controller'=>'index','action'=>'addcontactpointformajax'),null,true); ?>" method="post" id="AddNewContactPointForm">
+		<table class="table5p">
+			
+			<tr>
+				<td>Title<!-- title --></td>
+				<td> : </td>
+				<td>
+					<input type="text" name="title" maxlength="100" class="required"/>
+					<input type="hidden" name="id"/>
+				</td>
+			</tr>
+			<tr>
+				<td>Description<!-- description --></td>
+				<td> : </td>
+				<td>
+					<input type="text" name="description" maxlength="100" class=""/>
+				</td>
+			</tr>
+			
+			
+			
+		</table>
+	
+	</form>
+	</div>
+</div>	
+	
+
+</div>				
+				
+<div class="addNewCave" title="Agregar Colega">
+	
+<div id="AddCaveTabs">
+	<ul>
+		<li><a href="#AddCaveTabs-1" >Listado</a></li>
+		<li><a href="#AddCaveTabs-2" class="addEditBtn">Agregar</a></li>
+	</ul>
+	<div id="AddCaveTabs-1" class="InnerTabs">
+		<table cellpadding="0" cellspacing="0" border="0" class="display" id="CaveGrid">
+	<thead>
+		<tr>
+			<th>Id</th>
+			<th width="200">Tipo de Con qui&eacute;n?</th>			
+		</tr>
+	</thead>
+	   <tbody class="Cavegridtbody">
+		<?php 
+			$cList = $this->cave;
+			
+			if(count($cList)){
+				foreach ($cList as $cRow){
+					echo "<tr id='CaveId_".$cRow->getId()."'>".
+							"<td>".$cRow->getId()."</td>".
+							"<td class='td_cave'>".$cRow->getName()."</td>".							
+						 '</tr>';	
+						
+				}
+			}
+			
+		?>
+            
+    </tbody>
+</table>
+	</div>
+	<div id="AddCaveTabs-2" class="InnerTabs">
+		<form  id="addNewCaveForm"action="<?php echo $this->url(array('module'=>'gyuser','controller'=>'Index','action'=>'addnewcaveajax'),null,true); ?>" method="post">
+			<table class="table5p">
+				 <tr>
+					<td>Con qui&eacute;n?<!-- cave_name --></td>
+					<td> : </td>
+					<td>
+						<input type="text" name="name" maxlength="100"  class="required"/>
+						<input type="hidden" name="id"/>
+					</td>
+				</tr>
+			</table>	
+		</form>
+	</div>
+</div>	
+	
+
+</div>
+
+<div id="newOperations" title="Nueva Operaci&oacute;n">
+	<fieldset>
+<form action="<?php echo $this->url(array('module'=>'gyuser','controller'=>'index','action'=>'operationsformajax'),null,true); ?>" method="post" id="operationsForm">
+	<table class="table5p">
+		
+		<tr>
+			<td>Cliente<!-- client_id --></td>
+			<td> : </td>
+			<td>
+				<span class="opClientName"></span>
+				<input type="hidden" name="client_id" />
+			</td>
+		</tr>
+		<tr>
+			<td>Cuenta<!-- client_id --></td>
+			<td> : </td>
+			<td>
+				<select name="bank_account_id" class="required">
+				</select>
+			</td>
+		</tr>
+		
+		<tr>
+			<td>Fecha de Operaci&oacute;n<!-- date --></td>
+			<td> : </td>
+			<td><input type="text" class="invisibleInput"/><input type="text" name="date"  class="datepicker"/>
+				
+			</td>
+		</tr>
+		<tr>
+			<td>Importe<!-- amount --></td>
+			<td> : </td>
+			<td>
+				$ <input type="text" name="amount" maxlength="100" class="required number"/>
+			</td>
+		</tr>
+		<tr style="display:none">
+			<td>Estado</td>
+			<td> : </td>
+			<td>
+				 <input type="hidden" name="state" value="1"/>
+			</td>
+		</tr>
+		<tr>
+			<td>Observaciones<!-- observations --></td>
+			<td> : </td>
+			<td>
+				<textarea rows="3" cols="18" name="observations" maxlength="250"></textarea>
+			</td>
+		</tr>	
+	</table>
+
+</form>
+</fieldset>
+</div>
+<div id="insertPayment" title="Insertar Pago">
+	<fieldset>
+<form action="<?php echo $this->url(array('module'=>'gyuser','controller'=>'index','action'=>'operationsformajax'),null,true); ?>" method="post" id="insertPaymentForm">
+	<table class="table5p">
+		
+		<tr>
+			<td>Cliente<!-- client_id --></td>
+			<td> : </td>
+			<td>
+				<span class="opClientName"></span>
+				<input type="hidden" name="client_id" />
+				<input type="hidden" value="" name="operation_id"/>
+			</td>
+		</tr>
+		<tr>
+			<td>Numero De Cheque<!-- client_id --></td>
+			<td> : </td>
+			<td>
+				<select name="rejected_cheques" class="required">					
+				</select>	
+					
+			</td>
+		</tr>
+		<tr>
+			<td>Tipo de pago<!-- client_id --></td>
+			<td> : </td>
+			<td>
+				<select name="payment_type" class="required">
+					<option value="">Seleccionar</option>
+					<option value="1">Efectivo</option>
+					<option value="2">Cheque Propio</option>
+					<option value="3">Cheque Tercero</option>
+				</select>
+				<br/>
+				
+				<div class="own_cheque_table whiteBox"  style="display:none;">
+					<b>Insertar Cheque</b>
+					<hr/>
+					<table class="table5p">
+							<tbody>
+							<tr>
+								<td>Fecha<!-- date --></td>
+								<td> : </td>
+								<td>
+									<input type="text" class="required datepicker current_date" name="date" >
+									
+								</td>
+							</tr>
+							<tr>
+								<td>Numero De Cheque<!-- check_n --></td>
+								<td> : </td>
+								<td>
+									<input type="text" class="required number" name="check_n">
+								</td>
+							</tr>
+							<tr>
+								<td>Importe<!-- amount --></td>
+								<td> : </td>
+								<td>
+									$ <input type="text" class="required number" maxlength="20" name="amount">
+								</td>
+							</tr>
+							<tr>
+								<td>Cuenta<!-- client_id --></td>
+								<td> : </td>
+								<td>
+									<select name="bank_account_id" class="required">
+									</select>
+								</td>
+							</tr>
+							
+								</tbody>
+						</table>
+				</div>	
+				
+				<div class="third_party_cheque_table whiteBox"  style="display:none;">
+					<b>Insertar Cheque de Nuevo Banco</b>
+					<hr/>
+					<table class="table5p">
+							<tbody>
+							<tr>
+								<td>Fecha<!-- date --></td>
+								<td> : </td>
+								<td>
+									<input type="text" class="required datepicker current_date" name="new_date" >
+									
+								</td>
+							</tr>
+							<tr>
+								<td>Numero De Cheque<!-- check_n --></td>
+								<td> : </td>
+								<td>
+									<input type="text" class="required number" name="new_check_n">
+								</td>
+							</tr>
+							<tr>
+								<td>Importe<!-- amount --></td>
+								<td> : </td>
+								<td>
+									$ <input type="text" class="required number" maxlength="20" name="new_amount">
+								</td>
+							</tr>
+							<tr>
+								<td colspan="3">
+									<b>Informaci&oacute;n Bancaria</b>
+									<hr/>
+								</td>
+							</tr>
+							<tr>
+								<td>Banco<!-- bank_name --></td>
+								<td> : </td>
+								<td>
+									<input type="hidden" value="listing" name="addType">
+									<input type="text" class="required" maxlength="100" name="bank_name">
+								</td>
+							</tr>
+							<tr>
+								<td>Sucursal<!-- branch --></td>
+								<td> : </td>
+								<td>
+									<input type="text" class="required" name="branch" maxlength="100">
+								</td>
+							</tr>
+								<tr>
+								<td>C.P.<!-- check_n --></td>
+								<td> : </td>
+								<td>
+									<input type="text" class="number" name="new_check_zip_code">
+								</td>
+							</tr>		
+						<tr>
+						<td>Locaci&oacute;n<!-- state --></td>
+						<td> : </td>
+						<td>
+							<input type="radio" value="1" name="location_capital" id="location_capital_1_p" checked="checked"/>
+							<label for="location_capital_1_p">Capital</label>
+							<input type="radio" value="2" name="location_capital" id="location_capital_2_p"/>
+							<label for="location_capital_2_p">Interior</label>	
+						</td>
+					</tr>
+								
+							<tr>
+								<td>Nro. de Cuenta<!-- account_n --></td>
+								<td> : </td>
+								<td>
+									<input type="text" class="required" maxlength="100" name="account_n">
+								</td>
+							</tr>		
+							<tr>
+								<td>Fecha de Alta<!-- opening_date --></td>
+								<td> : </td>
+								<td>
+									<input type="text" class="datepickerMY" name="opening_date" maxlength="100">				
+								</td>
+							</tr>
+						
+							
+							
+								</tbody>
+						</table>
+				</div>		
+				
+			</td>
+		</tr>
+		
+		<tr>
+			<td>Importe<!-- amount --></td>
+			<td> : </td>
+			<td>
+				$ <input type="text" name="paid_amount" maxlength="100" class="required number"/>
+			</td>
+		</tr>
+		<tr>
+			<td>Importe Total<!-- amount --></td>
+			<td> : </td>
+			<td>
+				$ <input type="text" name="previous_balance" maxlength="100" disabled="disabled" class="number disabledInput"/>
+			</td>
+		</tr>
+		<tr>
+			<td>Saldo Cheque<!-- amount --></td>
+			<td> : </td>
+			<td>
+				$ <input type="text" name="current_balance" maxlength="100"  disabled="disabled"  class="number disabledInput"/>
+			</td>
+		</tr>
+		
+	</table>
+
+</form>
+</fieldset>
+</div>
+<div id="Plans" title="Planes">
+	<fieldset>
+<form  method="post" id="plansForm" action="<?php echo $this->url(array('module'=>'gyuser','controller'=>'index','action'=>'operationstepfourajax'),null,true); ?>">
+	<table class="table5p w100">
+		<tr>
+			<td>Monto Op</td>
+			<td> : </td>
+			<td><input type="text" size="8" maxlength="11" class="pAmount required" /></td>
+		</tr>
+		<tr>
+			<td>Fecha Actual</td>
+			<td> : </td>
+			<td><span class="current_date"></span></td>
+		</tr>
+		
+		
+		<tr>
+			<td>Intereses<!-- client_id --></td>
+			<td> : </td>
+			<td>
+				<select   id="InterestDrp" name="interests_id"  class="required">
+					<option value="" >Seleccionar</option>
+					<?php 
+							$plans = $this->interestsList;
+							if($plans){
+								foreach ($plans as $cRow){
+									$id 			=	$cRow->getId();
+									$rate			=	$cRow->getRate();
+									
+									echo "<option value='$id' interestvalue='$rate'>$rate %</option>";
+								}
+							}
+					?>
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<td>Seleccionar Plan<!-- client_id --></td>
+			<td> : </td>
+			<td>
+				<select name="plans" id="PlansDrp">
+					<option value="" pqty="0">Seleccionar</option>
+					<?php 
+							$plans = $this->plans;
+							if($plans){
+								foreach ($plans as $cRow){
+									$id 			=	$cRow->getId();
+									$Payments_qty	=	$cRow->getPayments_qty();
+									$Recurrence		=	$cRow->getRecurrence();
+									echo "<option value='$id' pqty='$Payments_qty' prec='$Recurrence'>$Payments_qty payments every $Recurrence days.</option>";
+								}
+							}
+					?>
+				</select>
+				<input type="hidden" name="operation_id" />
+				<input type="hidden" name="client_id" />
+				
+			</td>
+		</tr>
+		<tr>
+			<td colspan="3">
+				<ul class="plansListUL"></ul>
+			</td>
+		</tr>
+		
+	</table>
+</form>
+</fieldset>
+</div>
+<div id="PlansEdit" title="Editar Planes">
+	<fieldset>
+<form  method="post" id="plansEditForm" action="<?php echo $this->url(array('module'=>'gyuser','controller'=>'index','action'=>'operationstepfourajax'),null,true); ?>">
+	<table class="table5p w100">
+		<tr>
+			<td>Monto Op</td>
+			<td> : </td>
+			<td><span class="pAmount"></span></td>
+		</tr>
+		<tr>
+			<td>Fecha Actual</td>
+			<td> : </td>
+			<td><span class="current_date"></span></td>
+		</tr>
+		<tr>
+			<td>Intereses<!-- client_id --></td>
+			<td> : </td>
+			<td>
+				<select id="InterestDrp"  disabled="disabled"  name="interests_id" class="required">
+					<option value="" pqty="0">Seleccionar</option>
+					<?php 
+							$plans = $this->interestsList;
+							if($plans){
+								foreach ($plans as $cRow){
+									$id 			=	$cRow->getId();
+									$rate			=	$cRow->getRate();
+									
+									echo "<option value='$id' interestvalue='$rate'>$rate %</option>";
+								}
+							}
+					?>
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<td>Seleccionar Plan<!-- client_id --></td>
+			<td> : </td>
+			<td>
+				<select name="plans" id="PlansEditDrp" disabled="disabled">
+					<option value="" pqty="0">Seleccionar</option>
+					<?php 
+							$plans = $this->plans;
+							if($plans){
+								foreach ($plans as $cRow){
+									$id 			=	$cRow->getId();
+									$Payments_qty	=	$cRow->getPayments_qty();
+									$Recurrence		=	$cRow->getRecurrence();
+									echo "<option value='$id' pqty='$Payments_qty' prec='$Recurrence'>$Payments_qty payments every $Recurrence days.</option>";
+								}
+							}
+					?>
+				</select>
+				<input type="hidden" name="operation_id" />
+				<input type="hidden" name="client_id" />
+			</td>
+		</tr>
+		<tr class="localTr">
+			<td>Ubicaci&oacute;n<!-- client_id --></td>
+			<td> : </td>
+			<td>
+				<input type="radio" class="localDrp" name="local" value="1" id="local_1"/>
+				<label for="local_1">Pares</label>
+				<input type="radio" class="localDrp"  name="local" value="0" id="local_2"/>
+				<label for="local_2">Impares</label>				
+			</td>
+		</tr>
+		<tr>
+			<td colspan="3">
+				<ul class="plansEditListUL"></ul>
+			</td>
+		</tr>
+		
+	</table>
+</form>
+</fieldset>
+</div>
+<div class="edit-address-details" title="Editar Domicilios">
+	
+	<fieldset>
+	<form  id="editAddForm"action="<?php echo $this->url(array('module'=>'gyuser','controller'=>'Index','action'=>'useraddressformajax'),null,true); ?>" method="post">
+	<table class="table5p">
+					<tr>
+						<td>Domicilio<!-- street --></td>
+						<td> : </td>
+						<td>
+							<input type="text" name="street" maxlength="100" class="required" size="30"/>	
+							<input type="hidden" name="id"/>
+							<input type="hidden" name="client_id" />							
+						</td>
+					</tr>		
+					<tr>
+						<td>Barrio<!-- city --></td>
+						<td> : </td>
+						<td>
+							<input type="text" name="city" maxlength="100" class=""/>
+						</td>
+					</tr>
+					<tr>
+						<td>C.P.<!-- zip_code --></td>
+						<td> : </td>
+						<td>
+							<input type="text" name="zip_code" maxlength="8" class="digit number"/>
+						</td>
+					</tr>
+					<tr>
+						<td>Provincia<!-- state --></td>
+						<td> : </td>
+						<td>
+							<select class="required state_select" name="state_select" >
+								<option value="" >Seleccionar</option>
+								<?php 
+									$cList = $this->stateBD;
+									$CTArr = array();
+									if(count($cList)){
+										foreach ($cList as $cRow){
+											$value	=	$cRow->getName();
+											if($value	==	'Capital'){
+												$selected = ' selected="selected"';			
+											}else{
+												$selected = '';
+											}
+											echo "<option value='".$cRow->getId()."' $selected>".$value."</option>";
+											if($selected != ''){
+													$selected	=	'';
+											}								
+										}
+									}
+																		
+								?>
+							</select>
+							
+						</td>
+					</tr>
+					<tr>
+						<td>Tipo de Domicilio<!-- address_type --></td>
+						<td> : </td>
+						<td>
+							<select name="address_type">
+								<option value="" >Seleccionar</option>
+								<option value="laboral" >Laboral</option>
+								<option value="personal" >Personal</option>								
+							</select>
+							
+						</td>
+					</tr>
+					
+					
+				</table>
+
+</form>
+</fieldset>
+</div>
+<div class="rejected_cheques_payment" title="Detalle de Gestion">
+
+	<fieldset>
+	<h1 class="dataLoading">Cargando...</h1>
+	<h1>Gesti&oacute;n de cobranza</h1>
+	<input type="hidden" name="client_id" />
+	<input type="hidden" name="rcp_status" value="" />
+	<table cellpadding="0" cellspacing="0" border="0"   class="table5p"  style="width:100%" id="gestionTable">
+	<thead>
+		<tr>
+			<th>Fecha</th>
+			<th>Importe ($)</th>			
+			<th>Gastos ($)</th>
+			<th>Total ($)</th>
+			<th>Saldo Pendiente</th>
+			<th>Numero de Cheque</th>
+			<th>Banco</th>
+			<th>Observaciones</th>			
+		</tr>
+	</thead>
+	   <tbody class="gridtbody">
+	   <tr>
+	   	<td></td><td>-</td><td></td><td></td><td></td><td></td><td></td><td></td>
+	   </tr>	
+       </tbody>
+	</table>
+	
+	<h1>Detalle de pagos a cuenta</h1>
+		<form action="" method="post" id="">
+	
+			<table  cellpadding="0" cellspacing="0" border="0" class="table5p"   style="width:100%" id="gestionPagoTable" >
+	<thead>
+	
+		<tr>
+			<th>Fecha</th>
+			<th>Importe ($)</th>
+			<th>A cuenta cheque N</th>
+			<th>Importe Total</th>
+			<th>Saldo Cheque</th>
+		</tr>
+	</thead>
+	   <tbody class="gridtbody">
+	 
+		  <tr>
+		   	<td></td><td>-</td><td></td><td></td><td></td>
+		   </tr>
+            
+				    </tbody>
+				</table>
+			
+<br/>
+
+</form>
+
+	</fieldset>
+	
+	
+
+</div>
+<div  class="ShipDetails tooltipBox" title="Details de Domicilio" style="width:300px;">
+<form action="<?php echo $this->url(array('module'=>'gyuser','controller'=>'panel','action'=>''),null,true); ?>" method="post" id="ShipDetails">
+<img  src="/images/cancel.png" class="toolTipCancelBtn" style="float:right;cursor:pointer">
+	<table class="table5p">
+		
+			<?php 
+			if($this->admin){
+				$admin	=	$this->admin;
+				//$admin	=	new Gyuser_Model_Admin();
+				$Gastos_denuncia		=	$admin->getGastos_denuncia();
+				$Rejected_type_1_name	=	$admin->getRejected_type_1_name();
+				$Gastos_rechazo			=	$admin->getGastos_rechazo();
+				$Rejected_type_2_name	=	$admin->getRejected_type_2_name();
+				
+				echo 
+					"<tr>
+						<td>
+							<input type='button' value='$Rejected_type_1_name' class='jqButton costOne' />
+							<input type='hidden' name='gastos_denuncia' value='$Gastos_denuncia' />							
+						</td>
+						<td>
+						</td>
+						<td>
+							<input type='button' value='$Rejected_type_2_name' class='jqButton costTwo'/>
+							<input type='hidden' name='gastos_rechazo' value='$Gastos_rechazo' />
+							<input type='hidden' name='cheque_id' value='' />
+						</td>
+					
+					</tr>";
+			}
+		?>
+		
+		
+		
+		
+	</table>
+
+</form>
+</div>
+<div  class="reportDetails tooltipBox" title="" style="width:300px;">
+<form action="<?php echo $this->url(array('module'=>'gyuser','controller'=>'panel','action'=>''),null,true); ?>" method="post" id="reportDetails">
+<img  src="/images/cancel.png" class="toolTipCancelBtn" style="float:right;cursor:pointer">
+	<table class="table5p">
+		<tr>
+			<td>Informe: </td>
+			<td>
+				<input name="operation_id" type="hidden"/>
+				<input name="client_id" type="hidden"/>
+				<input name="approved" type="hidden"/>
+				<textarea name="report"></textarea>
+			</td>
+		</tr>
+		<tr>
+			<td colspan="2" align="right">
+				<input name=""  value="Guardar" type="submit"/>
+			
+			</td>
+		</tr>
+	</table>
+
+</form>
+</div>
+
+<div class="EditPriorFromClientPanel" title="Editar Operaciones Anteriores">
+	
+	<form action="" id="EditPriorClientForm" method="post">
+	<div class="">	
+			<span class="">
+		<table class="table5p">
+					<tr>
+						<td>Fecha<!-- date --></td>
+						<td> : </td>
+						<td>
+							<input type="text" name="date" maxlength="100" class="datepicker"/>	
+							<input type="hidden" name="id"/>
+							<input type="hidden" name="client_id"/>						
+						</td>
+					</tr>		
+					<tr>
+						<td>Ya realiz&oacute; operaci&oacute;n?<!-- is_operation_completed --></td>
+						<td> : </td>
+						<td>
+							<input type="radio" name="is_operation_completedW0" value="1" class=""/> SI 
+							&nbsp;&nbsp;
+							<input type="radio" name="is_operation_completedW0" value="0" class="" checked="checked"/> NO
+						</td>
+					</tr>
+					<tr>
+						<td>Con qui&eacute;n?<!-- cave_name --></td>
+						<td> : </td>
+						<td>
+							<select name="cave_name" >
+								<option value="" selected="selected">Seleccionar</option>
+									<?php 
+										$cList = $this->cave;
+										$opeArr = array();
+										if(count($cList)){
+											foreach ($cList as $cRow){
+												echo "<option value='".$cRow->getId()."'>".$cRow->getName()."</option>";
+												$opeArr[$cRow->getId()] = $cRow->getName();	
+											}
+										}
+										echo '<option value="" class="addnew">Editar Listado</option>';
+										
+										
+									?>
+							</select>
+							
+						</td>
+					</tr>
+					<tr>
+						<td>Importe<!-- amount --></td>
+						<td> : </td>
+						<td>
+							$ <input type="text" name="amount" class="number"/>
+							
+						</td>
+					</tr>
+					<tr>
+						<td>Fecha pr&oacute;ximo cheque<!-- next_check_date --></td>
+						<td> : </td>
+						<td>
+							<input type="text" name="next_check_date" class="datepicker"/>
+							
+						</td>
+					</tr>
+					<tr>
+						<td>Cheques pendientes<!-- pending_checks --></td>
+						<td> : </td>
+						<td>
+							<input type="text" name="pending_checks" class="number" maxlength="7"/>
+							
+						</td>
+					</tr>
+					<tr>
+						<td>&Uacute;ltima operaci&oacute;n<!-- is_last_operation --></td>
+						<td> : </td>
+						<td>
+							<input type="checkbox" name="is_last_operation" class=""/>
+							
+						</td>
+					</tr>
+				
+					
+				</table>
+				</span>
+			</div>	
+		</form>
+				
+		
+	</div>
+	<div  class="crmHistory" title="CRM History" style="width:300px;">
+		<form action="<?php echo $this->url(array('module'=>'gyuser','controller'=>'panel','action'=>''),null,true); ?>" method="post" id="crmHistory">
+			<img  src="/images/cancel.png" class="toolTipCancelBtn" style="float:right;cursor:pointer">
+			<div class="crmHistoryTag"></div>		
+		</form>
+	</div>

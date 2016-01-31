@@ -1,0 +1,207 @@
+
+<link rel="stylesheet" type="text/css" href="/css/demo_table_jui.css">
+
+<script type="text/javascript" src="/js/md5-jquery.js"></script>
+<script type="text/javascript" src="/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript" src="/js/gyoperador.js"></script>
+<script type="text/javascript" src="/js/jquery.validate.min.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('.menu li:eq(4) a').addClass('current');
+    });
+
+</script>
+<div class="main"  style="width:900px">
+    <div id="tabs">
+        <ul>
+            <li><a href="#tabs-1" class="edTabBtn">Listado</a></li>
+            <li><a href="#tabs-2">Agregar</a></li>		
+        </ul>
+        <div id="tabs-1">
+            <div style="position:relative;">
+                <table cellpadding="0" cellspacing="0" border="0" class="display" id="grid">
+                    <thead>
+                        <tr>
+                            <th>Id</th>
+                            <th>Tipo</th>
+                            <th>Nombre</th>
+                            <th>Apellido</th>
+                            <th>Email</th>
+                            <!--<th>Contrase&ntilde;a</th>-->
+                        </tr>
+                    </thead>
+                    <tbody class="gridtbody">
+                        <?php
+                        $pArr = $this->pArr;
+                        $strBld = "";
+                        if (count($pArr)) {
+                            foreach ($pArr as $pRow) {
+                                $delUrl = $this->url(array(
+                                    'controller' => 'index',
+                                    'action' => 'index',
+                                    'id' => $pRow->getId()
+                                ));
+                                switch($pRow->getType()) {
+                                    case 1: 
+                                        $type = 'Administrador/a';
+                                        break;
+                                    case 2:
+                                        $type = 'Supervisor/a';
+                                        break;
+                                    case 3:
+                                        $type = 'Operador/a';
+                                        break;
+                                }
+                                $strBld .= <<<EOT
+				<tr id="userid_{$pRow->getId()}">
+					<td class="user_id"> {$pRow->getId()} </td>
+                                        <td class="user_type">{$type}</td>
+					<td class="user_name">{$pRow->getName()}</td>
+					<td class="user_last_name">{$pRow->getLast_name()}</td>
+					<td class="user_email">{$pRow->getEmail()}</td>
+					<!--<td class="user_password">{$pRow->getPassword()}</td>-->
+				</tr>
+EOT;
+                            }
+                        }
+                        echo $strBld;
+                        ?>
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div id="tabs-2">
+            <form action="<?php echo $this->url(array('module' => 'gyuser', 'controller' => 'index', 'action' => 'operatorformajax'), null, true); ?>" method="post" id="operatorForm">
+                <table class="table5p">
+                    <tr>
+                        <td>Tipo de Usuario<!-- name --></td>
+                        <td> : </td>
+                        <td>
+                            <select name="type" class="required">
+                                <option value="1">Administrador/a</option>
+                                <option value="2">Supervisor/a</option>
+                                <option value="3">Operador/a</option>
+                            </select>                            
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td>Nombre<!-- name --></td>
+                        <td> : </td>
+                        <td>
+                            <input type="text" name="name" maxlength="100" class="required nameCap"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Apellido<!-- last_name --></td>
+                        <td> : </td>
+                        <td>
+                            <input type="text" name="last_name" maxlength="100" class="required nameCap"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Email<!-- email --></td>
+                        <td> : </td>
+                        <td>
+                            <input type="text" name="email" maxlength="100" class="required email"/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Contrase&ntilde;a<!-- password --></td>
+                        <td> : </td>
+                        <td>
+                            <input type="password" name="password" maxlength="100" class="required"/>
+                        </td>
+                    </tr>
+
+
+                    <tr>
+                        <td colspan="3" align="left"> <input type="submit" value="Submit" name="userSubmit" id="userSubmit" /></td>
+                    </tr>
+                </table>
+
+            </form>
+        </div>
+
+    </div>
+</div>
+
+
+<div id="editPopUP" title="Editar Usuario">
+    <p class="validateTips">Todos los campos son obligatorios.</p>
+    <fieldset>
+        <form action="<?php echo $this->url(array('module' => 'gyuser', 'controller' => 'index', 'action' => 'operatorformajax'), null, true); ?>" method="post" id="operatorFormPop">
+            <input type="hidden" value="" name="id"/>
+            <table class="table5p">
+                <tr>
+                    <td>Tipo</td>
+                    <td> : </td>
+                    <td>
+                        <select name="type" class="required">
+                            <option value="1">Administrador/a</option>
+                            <option value="2">Supervisor/a</option>
+                            <option value="3">Operador/a</option>
+                        </select>     
+                    </td>
+                </tr>
+                <tr>
+                    <td>Nombre<!-- name --></td>
+                    <td> : </td>
+                    <td>
+                        <input type="text" name="name" maxlength="100" class="required nameCap"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Apellido<!-- last_name --></td>
+                    <td> : </td>
+                    <td>
+                        <input type="text" name="last_name" maxlength="100" class="required nameCap"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Email<!-- email --></td>
+                    <td> : </td>
+                    <td>
+                        <input type="text" name="email" maxlength="100" class="required email"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Contrase&ntilde;a<!-- password -->
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    </td>
+                    <td> : </td>
+                    <td>
+                        <span class="link1 chgpwd">Cambiar Contrase&ntilde;a</span>
+                        <!-- <input type="password" name="password" maxlength="100" class="required"/> -->
+                    </td>
+                </tr>
+                <tr class="pwd_tr" style="display:none;">
+                    <td>Nueva Contrase&ntilde;a</td>
+                    <td>:</td>
+                    <td>
+
+                        <input type="password" name="password" maxlength="100" class=""/>
+                    </td>
+                </tr>	
+
+
+
+
+            </table>
+
+        </form>
+
+    </fieldset>
+
+</div>
+<div class="ui-dialog mainMsgDiv" >
+    <div class="ui-dialog-titlebar ui-widget-header ui-corner-all ui-helper-clearfix mainMsgInnerDiv">
+        <span class="ui-dialog-title" id="mainMsg">
+            Editar Usuario
+        </span>
+        <a href="#" class="ui-dialog-titlebar-close ui-corner-all msgClose" role="button">
+            <span class="ui-icon ui-icon-closethick">cerrar</span></a>
+    </div>
+</div>

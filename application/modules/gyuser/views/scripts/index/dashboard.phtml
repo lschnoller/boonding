@@ -1,0 +1,639 @@
+<script type="text/javascript" src="/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript" src="/js/jquery.validate.min.js"></script>
+<script type="text/javascript" src="/js/jquery/ui/minified/jquery.ui.accordion.min.js"></script>
+<script type="text/javascript" src="/js/jquery/ui/minified/jquery.effects.core.min.js"></script>
+<script type="text/javascript" src="/js/jquery/ui/minified/jquery.effects.highlight.min.js"></script>
+<script type="text/javascript" src="/js/highcharts.js"></script>
+<script type="text/javascript" src="/js/dashboard.js"></script>
+<script type="text/javascript">
+    var _isAdmin = false;
+    $(document).ready(function(){
+        $('.menu li:eq(0) a').addClass('current');        
+        checkOperationsOnDelay(true);
+        //$( ".delay-date" ).datepicker({ dateFormat: 'yy-mm-dd',minDate:+1 });
+    });
+</script>
+<style>
+    .cave_btn,.name_btn{
+        text-decoration: underline;
+        cursor:pointer;
+    }
+    .cTable td{
+        padding	:10px;
+        border	:1px solid #FAFAFA;
+    }
+    .cTable{
+        margin:0 !important;
+    }
+    .he1{
+        color:#4E9FC2;
+    }
+    .chartTable{
+
+    }
+    .chartTable th{
+
+    }
+    .chartTable tr{
+
+    }
+    .chartTable td{
+
+    }
+    .accHeader2{
+
+    }
+    .amount{
+
+    }
+    .accordion, .accordion_open, #monitor{
+        -moz-box-shadow: 0 0 5px #888;
+        -webkit-box-shadow: 0 0 5px#888;
+        box-shadow: 0 0 5px #888;
+        border-radius: 6px;
+        min-width:1100px;
+        width: 90%;
+    }
+    .ui-accordion .ui-accordion-header, .initial  {
+        /*background: #2F3E42 url("/images/bg_header.png");*/
+        border-color: #555;
+        padding:0px !important;
+        
+        /*new style*/
+        background: url("/images/grey_wash_wall.png") repeat scroll 0 0 #464646;
+        text-shadow: 0 1px 0 rgba(255, 255, 255, 0.3), 0 -1px 0 rgba(0, 0, 0, 0.7);
+    }
+    .ui-accordion-content,.ui-widget-content{
+        background-color: #ffffff;
+        background-image: none;
+        
+        /*new style*/
+        background:url("/images/old_mathematics.png") repeat scroll 0 0 #EBEFF1; 
+    }
+    .ui-accordion .ui-accordion-header  a, .ui-accordion .ui-accordion-header  a:link, .ui-accordion .ui-accordion-header  a:visited, .initial a {
+        color: #E3E3E3;
+        font-size: 16px;
+        text-decoration: none;
+    }
+    .initial {
+        position:relative;
+        line-height:16px;
+        border-radius:6px;
+        margin:0;
+    }
+    .initial a{
+        padding:8px;
+        padding-left:35px;
+        font-size:16px;
+        text-transform: uppercase;
+        line-height:22px;
+        display:block;
+    }
+    .accHeader2{
+        font-size: 14px;
+    }
+    .amount{
+        color:#ffffff;
+        font-size: 20px;
+    }
+    table.chartTable {
+        border:1px solid #d3d3d3;
+        margin:10px 10px 0 10px;
+        box-shadow:3px 5px 10px #ddd;
+    }
+    .chartTable th, .chartTable td {text-align:center; }
+    .chartTable th {padding-top:10px; padding-bottom:7px;text-shadow: 1px 1px 1px #fff; background:#e8eaeb;  }
+    .chartTable td {border-top:1px solid #e0e0e0; border-right:1px solid #e0e0e0;white-space: nowrap;padding:10px;}
+    .chartTable tr.odd-row td {background:#f6f6f6;}
+    .chartTable td.first, .chartTable th.first {text-align:left}
+    .chartTable td.last {border-right:none;}
+    /*
+    Background gradients are completely unnecessary but a neat effect.
+    */
+    .chartTable td {
+        background: -moz-linear-gradient(100% 25% 90deg, #fefefe, #f9f9f9);
+        background: -webkit-gradient(linear, 0% 0%, 0% 25%, from(#f9f9f9), to(#fefefe));
+    }
+    .chartTable tr.odd-row td {
+        background: -moz-linear-gradient(100% 25% 90deg, #f6f6f6, #f1f1f1);
+        background: -webkit-gradient(linear, 0% 0%, 0% 25%, from(#f1f1f1), to(#f6f6f6));
+    }
+    .chartTable th {
+        background: -moz-linear-gradient(100% 20% 90deg, #e8eaeb, #ededed);
+        background: -webkit-gradient(linear, 0% 0%, 0% 20%, from(#ededed), to(#e8eaeb));
+    }
+    /*
+    I know this is annoying, but we need additional styling so webkit will recognize rounded corners on background elements.  Nice write up of this issue: http://www.onenaught.com/posts/266/css-inner-elements-breaking-border-radius
+    And, since we've applied the background colors to td/th element because of IE, Gecko browsers also need it.
+    */
+    .chartTable tr:first-child th.first {
+        -moz-border-radius-topleft:5px;
+        -webkit-border-top-left-radius:5px; /* Saf3-4 */
+    }
+    .chartTable tr:first-child th.last {
+        -moz-border-radius-topright:5px;
+        -webkit-border-top-right-radius:5px; /* Saf3-4 */
+    }
+    .chartTable tr:last-child td.first {
+        -moz-border-radius-bottomleft:5px;
+        -webkit-border-bottom-left-radius:5px; /* Saf3-4 */
+    }
+    .chartTable tr:last-child td.last {
+        -moz-border-radius-bottomright:5px;
+        -webkit-border-bottom-right-radius:5px; /* Saf3-4 */
+    }
+
+    .ui-state-hover, .ui-widget-content .ui-state-hover, .ui-widget-header .ui-state-hover {
+        box-shadow:none;
+        border:1px solid #2F3D43;
+        background:url("/images/bg_header.png") repeat scroll 0 0 #2F3E42;
+        /*color: #FEFEFE;*/
+    }
+
+    #monitor.ui-accordion .ui-accordion-content{ 
+        overflow:visible !important; 
+        border:1px solid #ccc;
+    }
+
+    .table-vertical-h {
+        white-space: nowrap;
+        text-align:right;
+        background: -moz-linear-gradient(100% 20% 90deg, #E8EAEB, #EDEDED) repeat scroll 0 0 transparent !important;
+    }    
+    .rechazado-pie {
+        float:left;
+        width: 150px;
+        height: 250px;
+        margin: 0 auto;
+    }    
+    h4 {
+        margin-bottom: 0;
+    }    
+    .ui-accordion-icon {
+        left: auto !important;
+        right: 2% !important;
+        background-image: url("../js/jquery/themes/cupertino/images/ui-icons_ffffff_256x240.png") !important;
+        background-position: -32px -16px;;
+    }
+    .ui-icon-triangle-1-s {
+        left: auto !important;
+        right: 2% !important;
+        background-image: url("../js/jquery/themes/cupertino/images/ui-icons_ffffff_256x240.png") !important;
+        background-position: -64px -16px;
+    } 
+</style>
+<div id="crmParent"><div id="crmDialog"></div><div id="signoffDialog"></div></div>
+<div class="main" style="padding:20px;">
+    <div class="accordion accordion_open accordion-resize" id="monitor">
+        <h3 class="initial"><span style="position:relative" id="loader01"><span class="btnLoading">&nbsp;</span></span><a href="#">Notificaciones & CRM</a></h3>
+        <div class="initial-content" style="display:none">
+            <div id="task-box" style="">
+                <div>
+                    <h2>Operaciones Recientes <!--<span id="recent-op-loader" style="vertical-align:middle;"><img src="/images/wating.gif" /></span>--></h2>
+                    <ul class="task-list operations-loading" id="operations-on-delay" style="width:800px; display:none; overflow-y: scroll; height:230px">
+
+                    </ul>
+                </div>
+                <?php
+                
+/**************************************** TAREAS PENDIENTES ******************************************/                       
+                $tasksToday = '';
+                $tasksToday .= '<div style="margin-bottom:2em">';
+                $tasksToday .= '<h2>Tareas</h2>';
+                
+                $adminTasks = '';
+                $operatorTasks = '';
+                $provAdminTasks = '';
+                if (is_array($this->myTasks)) {
+                    foreach ($this->myTasks AS $key => $val) {                        
+                        /*$thumbs = '<span id="status-cont-' . $key . '"><a onclick="signOffEvent(this,' . $key
+                                . ',1)" class="thumb-up" title="Tarea realizada"></a><a onclick="signOffEvent(this,' . $key . ',2)" class="thumb-down" title="Reprogramar"></a></span>';
+                        if ($val['status'] == 1)
+                            $thumbs = '[Exito]';
+                        elseif ($val['status'] == 2)
+                            $thumbs = '[Sin Exito]';*/
+                        $delayed = '';
+                        $extra = '';
+                        if ($val['extra'] != '')
+                            $extra = '<span class="ref-date"> [' . $val['extra'] . ']</span>';
+                        $rescheduled = '';
+                        if ($val['origin_id'] > 0)
+                            $rescheduled = '<span class="ref-date" style="margin-right:1em"><img src="/images/reschedule03.png" title="Tarea Reprogramada" style="vertical-align:top" /></span>';                        
+
+                        if (date('Y-m-d', strtotime($val['due_date'])) < date('Y-m-d', strtotime('now'))) {
+                            $delayed = '<span class="delayed-btn">Demorada</span>';
+                            $due_date = '<strong>' . date('d/m', strtotime($val['due_date'])) . '</strong>';
+                        } elseif (date('Y-m-d', strtotime($val['due_date'])) == date('Y-m-d', strtotime('now')))
+                            $due_date = '<strong>Hoy</strong>';
+                        else
+                            $due_date = '<strong>' . date('d/m', strtotime($val['due_date'])) . '</strong>';
+
+                        switch (strtolower($val['action'])) {
+                            case 'llamado telefonico':
+                                $action = 'Hacer llamado telefónico';
+                                break;
+                            case 'email':
+                                $action = 'Enviar correo';
+                                break;
+                            case 'mensaje de texto':
+                                $action = 'Enviar SMS';
+                                break;
+                            case 'mensaje de voz':
+                                $action = 'Dejar mensaje de voz';
+                                break;
+                            case 'escrache en publica':
+                                $action = 'Hacer escrache en pública';
+                                break;
+                        }
+
+                        $task = '<li id="event-'. $key .'" class="task-list2 sign-off" href="/crm/clientinfosignoff/'.$val['client_id'].'/'.$key.'" class="">'
+                                    .$rescheduled.' <span class="ref-date">' . $due_date . '</span> - ' . $action . ' a <span id="client-name">' . $val['name'] .'</span> por ' . strtolower($val['reason']) . $extra
+                                    .'</li>'.$delayed.'<br />';
+
+                        if ($val['operator_type'] == 1) 
+                            $adminTasks .= $task;
+                        elseif ($val['operator_type'] == 2)
+                            $provAdminTasks .= $task;
+                        elseif ($val['operator_type'] == 3)
+                            $operatorTasks .= $task;
+                    }
+                }else
+                    $tasksToday .= '<p><strong>No hay más tareas agendadas para hoy.</strong></p>';
+                
+                
+                
+                if ($this->oprType == 1) { //admin
+                    if ($adminTasks != '') {
+                        $tasksToday .= '<h4>- Administradores</h4>';
+                        $tasksToday .= '<ul>';
+                        $tasksToday .= $adminTasks;
+                        $tasksToday .= '</ul>';
+                    }                    
+                }
+                if ($this->oprType <= 2) { //gestion de cheques
+                    if ($provAdminTasks != '') {
+                        $tasksToday .= '<h4>- Gestión de Cheques</h4>';
+                        $tasksToday .= '<ul>';
+                        $tasksToday .= $provAdminTasks;
+                        $tasksToday .= '</ul>';
+                    }
+                }
+                if ($this->oprType <= 3) { //operator
+                    if ($operatorTasks != '') {
+                        $tasksToday .= '<h4>- Operadores</h4>';
+                        $tasksToday .= '<ul>';
+                        $tasksToday .= $operatorTasks;
+                        $tasksToday .= '</ul>';
+                    }
+                }                
+                $tasksToday .= '</div>';
+
+                echo $tasksToday;
+                
+/*********************************** TAREAS REALIZADAS ********************************************/
+                if ($this->oprType > 1) { //not admin
+                    ?>
+                    <div>
+                        <h2>Tareas Realizadas</h2>
+                        <ul class="task-list" id="completed-tasks">
+                            <?php
+                            $crmMapper = new Gyuser_Model_CRMTasks();
+                            if (is_array($this->completedTasks)) {
+                                foreach ($this->completedTasks AS $key => $val) {
+                                    echo $crmMapper->createCompletedTaskHtml($val);
+                                }
+                            }
+                            ?>
+                        </ul>
+                    </div>
+                    <?php
+                }
+
+                if ($this->oprType == 1) { //is admin
+                    $myTasksCreated = false;
+                    echo '<div>';
+                    echo '<h2 style="clear:both;">Tareas Realizadas</h2>';
+                    
+                    if ($this->adminMonitor) {
+                        $crmMapper = new Gyuser_Model_CRMTasks();
+                        foreach ($this->adminMonitor AS $keyO => $valO) {
+                            if ($keyO == $this->oprId) {
+                                echo '<h4>Mis Tareas</h4>';
+                                echo '<ul class="task-list" id ="completed-tasks">';
+                                $myTasksCreated = true;
+                            } else {
+                                if(!$myTasksCreated) {
+                                    echo '<ul class="task-list" id ="completed-tasks" style="display:none"></ul>';
+                                    $myTasksCreated = true;
+                                }
+                                echo '<h4>' . $valO['name'] . '</h4>';
+                                echo '<ul class="task-list">';
+                            }
+                            if (is_array($valO))
+                                foreach ($valO AS $key => $val) {
+                                    if (is_array($val)) {
+                                        echo $crmMapper->createCompletedTaskHtml($val);
+                                    }
+                                }
+                            echo '</ul>';
+                        }
+                    } else {
+                        echo '<ul class="task-list" id ="completed-tasks">No hubo tareas realizadas recientemente.</ul>';
+                    }
+                    echo '</div>';
+                }
+                ?>
+            </div>
+        </div>
+    </div><!-- # TASK BOX -->
+    
+    
+    <br/>
+    <?php
+    if ($this->oprType == 1) {
+        $CurrentMonthHalfCave = $this->CurrentMonthHalfCave;
+
+        $CurrentMonth = $this->CurrentMonth;
+        $CurrentQuarter = $this->CurrentQuarter;
+        $CurrentSemester = $this->CurrentSemester;
+        $CurrentYear = $this->CurrentYear;
+
+        $PrevMonthToDate = $this->PrevMonthToDate;
+        $PrevQuaterToDate = $this->PrevQuaterToDate;
+        $PrevSemesterToDate = $this->PrevSemesterToDate;
+        $PrevYearToDate = $this->PrevYearToDate;
+
+        $PrevMonthToDateAvg = $this->PrevMonthToDateAvg;
+        $PrevQuaterToDateAvg = $this->PrevQuaterToDateAvg;
+        $PrevSemesterToDateAvg = $this->PrevSemesterToDateAvg;
+        $PrevYearToDateAvg = $this->PrevYearToDateAvg;
+
+        $PrevMonthTotal = $this->PrevMonthTotal;
+        $PrevQuaterTotal = $this->PrevQuaterTotal;
+        $PrevSemesterTotal = $this->PrevSemesterTotal;
+        $PrevYearTotal = $this->PrevYearTotal;
+
+        $OperationsAmountByPrevMonths = $this->OperationsAmountByPrevMonths;
+
+        $AmounByPayedCheques = $this->AmounByPayedCheques;
+        $AmounByPayedCheques0To30Days = $this->AmounByPayedCheques0To30Days;
+        $AmounByPayedCheques30To60Days = $this->AmounByPayedCheques30To60Days;
+        $AmounByPayedCheques60To90Days = $this->AmounByPayedCheques60To90Days;
+        $AmounByPayedCheques120Days = $this->AmounByPayedCheques120Days;
+
+        $chequeArr = array(
+            array('0 a 30 dias', (int) $AmounByPayedCheques0To30Days),
+            array('30 a 60', (int) $AmounByPayedCheques30To60Days),
+            array('60 a 90', (int) $AmounByPayedCheques60To90Days),
+            array('90 +', (int) $AmounByPayedCheques120Days),
+        );
+        $chequeArr = json_encode($chequeArr);
+
+        $AmounByChequesStatusAcredited = $this->AmounByChequesStatusAcredited;
+        $ChequeAmountByPrevMonths = $this->ChequeAmountByPrevMonths;
+        $ChequeAmountByPrevMonths = json_encode($ChequeAmountByPrevMonths);
+
+        $RejectedChequesBalanceByCal = $this->RejectedChequesBalanceByCal;
+        $PrecOfRejectedChequesByPassed = $this->PrecOfRejectedChequesByPassed;
+        $RejectedChequesBalanceByCaves = $this->RejectedChequesBalanceByCaves;
+        $RejectedChequesBalanceByCaves = json_encode($RejectedChequesBalanceByCaves);
+        $RejectedChequesBalanceByCavesAndMonths = $this->RejectedChequesBalanceByCavesAndMonths;
+        $RejectedChequesBalanceByCavesAndMonths = json_encode($RejectedChequesBalanceByCavesAndMonths);
+
+        /*
+          $AmounByPayedCheques0To30DaysByCaves = $this->AmounByPayedCheques0To30DaysByCaves;
+          $AmounByPayedCheques0To30DaysByCaves = json_encode($AmounByPayedCheques0To30DaysByCaves);
+          $AmounByPayedCheques30To60DaysByCaves = $this->AmounByPayedCheques30To60DaysByCaves;
+          $AmounByPayedCheques30To60DaysByCaves = json_encode($AmounByPayedCheques30To60DaysByCaves);
+          $AmounByPayedCheques60To90DaysByCaves = $this->AmounByPayedCheques60To90DaysByCaves;
+          $AmounByPayedCheques60To90DaysByCaves = json_encode($AmounByPayedCheques60To90DaysByCaves);
+          $AmounByPayedChequesAfter90DaysByCaves = json_encode($this->AmounByPayedChequesAfter90DaysByCaves);
+
+          echo "<script>
+          RejectedChequesBalanceByCavesAndMonths	=	$RejectedChequesBalanceByCavesAndMonths;
+          RejectedChequesBalanceByCaves		=	$RejectedChequesBalanceByCaves;
+          ChequeAmountByPrevMonths		=	$ChequeAmountByPrevMonths;
+          OperationsAmountByPrevMonths		=	$OperationsAmountByPrevMonths;
+          chequeArr				=	$chequeArr;
+          AmounByPayedCheques30To60DaysByCaves	=	$AmounByPayedCheques30To60DaysByCaves;
+          AmounByPayedCheques0To30DaysByCaves	=	$AmounByPayedCheques0To30DaysByCaves;
+          AmounByPayedCheques60To90DaysByCaves	=	$AmounByPayedCheques60To90DaysByCaves;
+          AmounByPayedChequesAfter90DaysByCaves	=	$AmounByPayedChequesAfter90DaysByCaves;
+          </script>";
+         *
+         */
+        $amountsPassedByDates = json_encode($this->amountsPassedByDates);
+        echo "<script>
+                _isAdmin = true;
+                RejectedChequesBalanceByCavesAndMonths	= $RejectedChequesBalanceByCavesAndMonths;
+                RejectedChequesBalanceByCaves		= $RejectedChequesBalanceByCaves;
+                ChequeAmountByPrevMonths		= $ChequeAmountByPrevMonths;
+                OperationsAmountByPrevMonths		= $OperationsAmountByPrevMonths;
+                chequeArr				= $chequeArr;
+                amountsPassedByDates                    = $amountsPassedByDates;
+          </script>";
+        ?>
+
+        <div class="accordion">
+            <h3><a href="#">OPERACIONES <span class="accHeader2">Monto de operaciones mensual al dia de la fecha: <span class="amount"><?php echo $this->amountFormat($CurrentMonthHalfCave); ?> </span></span></a> </h3>
+            <div>
+                <table cellpadding="0" cellspacing="0" border="0" class="chartTable" style="float:left; width:510px;" >
+                    <tr>
+                        <th></th>
+                        <th>Cierre <br />Anterior</th>
+                        <th>Cierre Anterior Promedio</th>
+                        <th>Cierre Anterior <br />al Día</th>
+                        <th>Actual</th>
+                    </tr>
+                    <tr>
+                        <td>Mensual</td>
+                        <td><?php echo $this->amountFormat($PrevMonthTotal); ?></td>
+                        <td><?php echo $this->amountFormat($PrevMonthToDateAvg); ?></td>
+                        <td><?php echo $this->amountFormat($PrevMonthToDate); ?></td>
+                        <td><?php echo $this->amountFormat($CurrentMonthHalfCave); ?></td>
+                    </tr>
+                    <tr>
+                        <td>Trimestral</td>
+                        <td><?php echo $this->amountFormat($PrevQuaterTotal); ?></td>
+                        <td><?php echo $this->amountFormat($PrevQuaterToDateAvg); ?></td>
+                        <td><?php echo $this->amountFormat($PrevQuaterToDate); ?></td>
+                        <td><?php echo $this->amountFormat($CurrentQuarter); ?></td>
+                    </tr>
+                    <tr>
+                        <td>Semestral</td>
+                        <td><?php echo $this->amountFormat($PrevSemesterTotal); ?></td>
+                        <td><?php echo $this->amountFormat($PrevSemesterToDateAvg); ?></td>
+                        <td><?php echo $this->amountFormat($PrevSemesterToDate); ?></td>
+                        <td><?php echo $this->amountFormat($CurrentSemester); ?></td>
+                    </tr>
+                    <tr>
+                        <td>Anual</td>
+                        <td><?php echo $this->amountFormat($PrevYearTotal); ?></td>
+                        <td><?php echo $this->amountFormat($PrevYearToDateAvg); ?></td>
+                        <td><?php echo $this->amountFormat($PrevYearToDate); ?></td>
+                        <td><?php echo $this->amountFormat($CurrentYear); ?></td>
+                    </tr>
+                </table>
+                <div id="opGraphBox" style="float:right; width:500px; height: 300px;"></div>
+            </div>
+        </div>
+        <br/>
+        <div class="accordion">
+            <?php
+            $chk_total = '';
+            if (@$this->ctAmount)
+                $chk_total = $this->ctAmount;
+            else
+                $chk_total = '0.00';
+
+            $psdo_total = '';
+            if (@$this->cpAmount)
+                $psdo_total = $this->cpAmount;
+            else
+                $psdo_total = '0.00';
+
+            $psdoPrec = floatval($psdo_total) * 100 / (floatval($chk_total) + floatval($psdo_total));
+            $psdoPrec = number_format($psdoPrec, 2);
+            ?>
+            <h3 style="height:45px">
+                <a href="#" style="display:block;float:left;"> CHEQUES PASADOS <span class="accHeader2">Monto de cheques pasados:  </span><span class="amount"> <?php echo $this->amountFormat($psdo_total) . ' (' . $psdoPrec . '%)'; ?></span></a>
+                <div style="position:relative; float:left;">
+                    <div id="pasadosGraphBox1" style="position:absolute; width:100px; height: 70px; margin: 0; margin-left:-30px; margin-top:-10px; text-align:left;">&nbsp;</div>
+                </div>
+                <div style="clear:both">&nbsp;</div>
+            </h3>
+            <div>
+    <?php echo "<script>psdoPrec = $psdoPrec;</script>"; ?>
+                <div>
+                    <table cellpadding="0" cellspacing="0" border="0" class="chartTable" style="float:left; margin:10px"  id="grid">
+                        <tbody class="gridtbody">
+                            <?php
+                            /*
+                              $pRow = $this->cList;
+                              $strBld = "";
+                              $sName = "";
+                              if (count($pRow)) {
+                              //$pRow	=	new Gyuser_Model_SupplierOperations();
+                              $passedAmount = $pRow->getPassed_amount();
+                              $cPsdoPrec = (floatval($passedAmount) / (floatval($passedAmount) + floatval($chk_total))) * 100;
+                              $ciPsdoPrec = (floatval($psdo_total) > 0 ) ? floatval($passedAmount) * 100 / floatval($psdo_total) : 0;
+                              $cPsdoPrec = number_format($cPsdoPrec, 2);
+                              $ciPsdoPrec = number_format($ciPsdoPrec, 2);
+                              $rej_amount = $pRow->getRej_check_amount();
+                              $balance = $pRow->getBalance() * -1;
+                              $rej_total_amount = $this->amountFormat($rej_amount + $balance);
+                              $passedAmount = $this->amountFormat($passedAmount);
+                              echo "<script>pre_new_1 = $cPsdoPrec</script>";
+
+                              $strBld .= <<<EOT
+                              <tr>
+                              <td>
+                              <span class="user_id"  id="cave_{$pRow->getId()}"><b>{$pRow->getName()}</b>
+                              <input type="hidden" value="{$pRow->getId()}" name="id"/>
+                              <input type="hidden" value="{$pRow->getName()}" name="name"/>
+                              <input type="hidden" value="{$pRow->getEmail()}" name="email"/>
+                              <span>
+                              </td>
+                              <td class="user_operation_id">$passedAmount</td>
+                              <td class="user_date"><b>$ciPsdoPrec%</b> ($cPsdoPrec%)</td>
+                              <td class="user_check_n"><b>{$rej_total_amount}</b> ({$balance})</td>
+                              </tr>
+                              EOT;
+                              }
+                              echo $strBld;
+                             */
+                            $pArr = $this->pList;
+                            $strBld = "";
+                            $sName = "";
+                            if (count($pArr)) {
+                                $row1 = "<tr><td class='table-vertical-h'><strong>PROVEEDOR:</strong></td>";
+                                $row2 = "<tr><td class='table-vertical-h'><strong>Total Pasado:</strong></td>";
+                                $row3 = "<tr><td class='table-vertical-h'><strong>Porcentaje Pasado:</strong><br />(Porcentaje de cartera)</td>";
+                                $row4 = "<tr><td class='table-vertical-h'><strong>Saldo a Liquidar:</strong><br />(Liquidación anterior)</td>";
+                                $provsData = '<script>var provsData = [';
+                                foreach ($pArr as $pRow) {
+                                    $passedAmount = $pRow->getPassed_amount();
+                                    $ciPsdoPrec = number_format(floatval($passedAmount) * 100 / floatval($psdo_total), 2);
+                                    $cPsdoPrec = number_format(floatval($passedAmount) * 100 / floatval($chk_total), 2);
+
+                                    $rej_amount = $pRow->getRej_check_amount();
+                                    $balance = $pRow->getBalance() * -1;
+                                    $rej_total_amount = $this->amountFormat($rej_amount + $balance);
+                                    $passedAmount = $this->amountFormat($passedAmount);
+                                    $balance = $this->amountFormat($balance);
+                                    $provsData .= "['{$pRow->getName()}', $cPsdoPrec],";
+                                    $row1 .= "<td><b><span class='user_id'  id='userid_{$pRow->getId()}'>{$pRow->getName()}</span></b></td>";
+                                    $row2 .= "<td class='user_operation_id'>{$passedAmount}</td>";
+                                    $row3 .= "<td class='user_date'><b>$ciPsdoPrec%</b><br />($cPsdoPrec%)</td>";
+                                    $row4 .= "<td class='user_check_n'><b>{$rej_total_amount}</b><br />({$balance})</td>";
+                                }
+                                $provsData .= ']</script>';
+                                echo $provsData . $row1 . '</tr>' . $row2 . '</tr>' . $row3 . '</tr>' . $row4 . '</tr>';
+                            }
+                            ?>
+                        </tbody>
+                    </table>
+                    <div id="pasadosGraphBox2" style="float:left; clear:right; width: 350px; height: 230px; margin: 0 auto;"></div>
+                    <div style="clear:both;height:10px;"></div>
+                    <div id="pasadosGraphBox3" style="width: 600px; height: 300px; margin: 0 auto"></div>
+                </div>
+            </div>
+        </div>
+        <br/>
+
+        <div class="accordion">
+            <h3><a href="#">CHEQUES RECHAZADOS  <span class="accHeader2">Total rechazos: <span class="amount"> <?php echo $this->amountFormat($RejectedChequesBalanceByCal); ?> <?php //echo '('.$PrecOfRejectedChequesByPassed.'%)';   ?></span></span></a> </h3>
+            <div>
+                <div id="rechazados-box">
+                    <div id="container10" style="float:left;width: 500px; height: 320px; margin: 0 20px"></div>
+                </div>
+            </div>
+        </div>
+
+        <br />
+        <div class="accordion">
+            <h3><a href="#">CARTERA <span class="accHeader2">Total cheques en cartera: <span class="amount"> <?php echo $this->amountFormat($AmounByPayedCheques); ?> </span></span></a> </h3>
+            <div>
+                <div>
+                    <table cellpadding="0" cellspacing="0" border="0" class="chartTable" style="float:left" >
+                        <tr>
+                            <th>Plazo</th>
+                            <th>Monto</th>
+                        </tr>
+                        <tr>
+                            <td>0 a 30 dias</td>
+                            <td><?php echo $this->amountFormat($AmounByPayedCheques0To30Days); ?></td>
+                        </tr>
+                        <tr>
+                            <td>30 a 60</td>
+                            <td><?php echo $this->amountFormat($AmounByPayedCheques30To60Days); ?></td>
+                        </tr>
+                        <tr>
+                            <td>60 a 90</td>
+                            <td><?php echo $this->amountFormat($AmounByPayedCheques60To90Days); ?></td>
+                        </tr>
+                        <tr>
+                            <td>90 +</td>
+                            <td><?php echo $this->amountFormat($AmounByPayedCheques120Days); ?></td>
+                        </tr>
+                    </table>
+
+                    <div id="chequesGraphBox" style="width: 600px; height: 300px;"></div>
+                </div>
+            </div>
+
+        </div>
+        <br/>
+        <div class="accordion">
+            <h3><a href="#">ACREDITACIONES  <span class="accHeader2">Total acreditaciones hasta hoy:  <span class="amount"> <?php echo $this->amountFormat($AmounByChequesStatusAcredited); ?> </span></span></a> </h3>
+            <div>
+                <div>
+                    <div id="acGraphBox" style="float:left;width: 800px; height: 300px; margin: 0 auto"></div>
+                </div>
+            </div>
+
+        </div>
+        <br/>
+
+<?php } ?>
+</div>

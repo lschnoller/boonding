@@ -1,0 +1,62 @@
+<?php
+$client = $this->clientInfo;
+$name = $client->getFirst_name().' '.$client->getLast_name();
+$status = $client->getStatus();
+$tel1 = $client->getTel_cell();
+$tel2 = $client->getTel_part();
+$email = $client->getEmail();
+?>
+<div id="client-info">
+    <input type="hidden" id="CRMName" val="<?=$name?>" /> 
+    <input type="hidden" id="CRMStatus" val="<?=$status?>" />
+    <input type="hidden" id="CRMTel1" val="<?=$tel1?>" />
+    <input type="hidden" id="CRMTel2" val="<?=$tel2?>" />
+    <input type="hidden" id="CRMEmail" val="<?=$email?>" />
+        
+	<ul style="margin-top:5px;">
+            <div id="client-info-cont">
+            <p class="sticky-bar">
+                Celular: <?=$tel1?>
+            </p>
+            <p class="sticky-bar">
+                Tel: <?=$tel2?>
+            </p>
+            <p class="sticky-bar">
+                Email: <?=$email?>
+            </p>
+	</div>
+	<?php 
+	if(is_array($this->clientHistory)) {
+            foreach ($this->clientHistory AS $val) 
+            {
+                $thumbs = '';
+                if($val['status'] == 1)
+                        $thumbs = '<a class="thumb-up"></a>';
+                elseif($val['status'] == 2)
+                        $thumbs = '<a class="thumb-down"></a>';
+                
+                if ($val['title'] != '')
+                    $val['title'] .= ' - ';
+
+            ?>
+            <li>
+                    <h2><?=$thumbs?> <?=$val['title']?><span class="action-date"><?=$val['action_date']?></span></h2>
+                    <p><?=$val['comment']?></p>
+                    <div class="action-operator"><?=$val['operator']?></div>
+            </li>
+            <?php
+            }
+	}
+	else {
+            echo '<li>Sin Historial</li>';
+	}
+	?>
+	</ul>
+	<div id="operator-comment-cont">
+		<h2></h2>
+		<p>
+			<textarea id="operator-comment"></textarea>
+		</p>
+		<p style="text-align: right;"><input type="button" onclick="submitOperatorComment(this,<?=$this->clientId?>);" class="ui-button ui-widget ui-state-default ui-corner-all" value="Guardar" /></p>
+	</div>
+</div>

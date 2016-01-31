@@ -1,0 +1,384 @@
+
+<link rel="stylesheet" type="text/css" href="/css/demo_table_jui.css">
+<script type="text/javascript" src="/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript" src="/js/gyoperations.js"></script>
+<script type="text/javascript" src="/js/jquery.validate.min.js"></script>
+<script type="text/javascript">
+    $(document).ready(function(){
+        $('.menu li:eq(2) a').addClass('current');
+    });
+
+</script>
+<style>
+    .details .whiteTable th {
+        padding:.3em 1em;
+    }
+</style>
+
+<div class="main" style="margin-top:2em; margin-left:1em; width:900px">
+    <!--<div id="tabs">
+        <ul>
+            <li><a href="#tabs-1" class="edTabBtn">Listado</a></li>
+            <!-- <li style="disabled"><a href="#tabs-2">Agregar</a></li> -->
+
+       <!-- </ul>
+        <div id="tabs-1" class="InnerTabs">-->
+            <div style="position:relative">
+                <table cellpadding="0" cellspacing="0" border="0" class="display" id="grid">
+                    <thead>
+                        <tr>
+                            <th>Id</th>
+                            <th>Cliente</th>			
+                            <th>Fecha De Operaci&oacute;n</th>
+                            <th>Importe</th>
+                            <th>Estado</th>
+                            <th>Observaciones</th>
+                            <th>Informe</th>
+                        </tr>
+                    </thead>
+                    <tbody class="gridtbody">
+                        <?php
+                        //xxxs
+                        $clientList = $this->clientList;
+                        $cNameArr = array();
+                        $cOptions = "";
+                        if (count($clientList)) {
+                            foreach ($clientList as $clientRow) {
+                                $cId = $clientRow->getId();
+                                $cFirstName = $clientRow->getFirst_name();
+                                $cLastName = $clientRow->getLast_name();
+                                $cOptions .= "<option value=\"$cId\">$cFirstName $cLastName</option>";
+                                $cNameArr[$cId] = array('first_name' => $cFirstName, 'last_name' => $cLastName);
+                            }
+                        }
+                        $pArr = $this->operationList;
+                        $strBld = "";
+                        if (count($pArr)) {
+                            foreach ($pArr as $pRow) {
+                                $firstname = @$cNameArr[$pRow->getClient_id()]['first_name'];
+                                $lastname = @$cNameArr[$pRow->getClient_id()]['last_name'];
+                                $strBld .= <<<EOT
+				<tr id="userid_{$pRow->getId()}">
+					<td class="user_id"> {$pRow->getId()}  </td>
+					<td class="user_client_name" style="min-width:120px">
+						<input class="user_client_id" type="hidden" value="{$pRow->getClient_id()}" />
+						<span class="user_first_name">{$firstname}</span>&nbsp;<span class="user_last_name">{$lastname}</span>
+					</td>
+					<td class="user_date">{$pRow->getDate()}</td>
+					<td class="user_amount"  style="white-space:nowrap">{$this->amountFormat($pRow->getAmount())}</td>
+					<td class="user_state" style="white-space:nowrap">{$pRow->getOperations_state_name()}<input type="hidden" value="{$pRow->getState()}"/></td>
+					<td class="user_observations">{$pRow->getObservations()}</td>
+					<td class="user_report">{$pRow->getReport()}</td>					
+				</tr>
+EOT;
+                            }
+                        }
+                        echo $strBld;
+                        ?>
+
+                    </tbody>
+                </table>
+            </div>
+        <!--</div> <!--tab-1 -->
+        <?php if (0) { ?>
+            <div id="tabs-2" class="InnerTabs">
+                <form action="<?php echo $this->url(array('module' => 'gyuser', 'controller' => 'index', 'action' => 'operationsformajax'), null, true); ?>" method="post" id="operationsForm">
+                    <table class="table5p">
+
+                        <tr>
+                            <td>Cliente<!-- client_id --></td>
+                            <td> : </td>
+                            <td>
+                                <select name="client_id"  class="required">
+                                    <option value="" selected="selected">Select</option>
+
+                                    <?php
+                                    echo $cOptions;
+                                    ?>
+                                </select>
+
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Fecha De Operaci&oacute;n<!-- date--></td>
+                            <td> : </td>
+                            <td>
+                                <input type="text" name="date"  class="datepicker"/>
+
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Importe<!-- amount --></td>
+                            <td> : </td>
+                            <td>
+                                $ <input type="text" name="amount" maxlength="100" class="required number"/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Estado</td>
+                            <td> : </td>
+                            <td>
+                                <select name="state"  class="required">
+                                    <option value="" selected="selected">Select</option>
+    <?php
+    $sList = $this->operationsState;
+    $sListBlr = "";
+    if (count($sList)) {
+        foreach ($sList as $sRow) {
+            $sId = $sRow->getId();
+            $sName = $sRow->getName();
+            $sListBlr .= "<option value='$sId'>$sName</option>";
+        }
+    }
+    echo $sListBlr;
+    ?>
+                                </select>
+
+
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Observaciones<!-- observations --></td>
+                            <td> : </td>
+                            <td>
+                                <textarea rows="3" cols="18" name="observations" maxlength="250"></textarea>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Informe<!-- report --></td>
+                            <td> : </td>
+                            <td>
+
+                                <textarea rows="3" cols="18" name="report" maxlength="250"></textarea>
+                            </td>
+                        </tr>
+
+
+                        <tr>
+                            <td colspan="3" align="left"> <input type="submit" value="Submit" name="userSubmit" id="userSubmit" /></td>
+                        </tr>
+                    </table>
+
+                </form>
+            </div>
+<?php } ?>
+
+
+    </div>	
+
+</div>
+<div id="addNewCheques" title="Agregar Nuevo Cheque">
+
+    <fieldset>
+
+        <form action="<?php echo $this->url(array('module' => 'gyuser', 'controller' => 'index', 'action' => 'chequesformajax'), null, true); ?>" method="post" id="chequesForm">
+            <table class="table5p">
+
+                <tr>
+                    <td>Fecha<!-- date --></td>
+                    <td> : </td>
+                    <td>
+
+                        <input type="text" name="date"  class="required datepicker"/>
+                        <input type="hidden" name="operation_id"  class="" value=""/>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td>Número De Cheque<!-- check_n --></td>
+                    <td> : </td>
+                    <td>
+                        <input type="text" name="check_n" class="required number"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Importe<!-- amount --></td>
+                    <td> : </td>
+                    <td>
+                        $ <input type="text" name="amount" maxlength="20" class="required number"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Estado<!-- status --></td>
+                    <td> : </td>
+                    <td>
+
+                        <select name="status" class="statusDrpDwn">
+                            <option value="" selected="selected">Select</option>
+<?php
+$sList = $this->statusList;
+$sListBlr = "";
+if (count($sList)) {
+    foreach ($sList as $sRow) {
+        $sId = $sRow->getId();
+        $sName = $sRow->getStatus_list();
+        $sListBlr .= "<option value=\"$sId\">$sName</option>";
+    }
+}
+echo $sListBlr;
+?>
+                        </select>
+
+                    </td>
+                </tr>
+
+
+
+            </table>
+
+        </form>
+    </fieldset>
+</div>
+
+
+<div id="editOperations" title="Editar Operacion">
+    <fieldset>
+        <form action="<?php echo $this->url(array('module' => 'gyuser', 'controller' => 'index', 'action' => 'operationsformajax'), null, true); ?>" method="post" id="editOperationsForm">
+            <table class="editTableStyle">
+                <tr>
+                    <td>Cliente<!-- client_id --></td>
+                    <td> : </td>
+                    <td>
+                        <select name="client_id"  class="required" disabled="disabled">
+                            <option value="" selected="selected">Select</option>
+<?php
+echo $cOptions;
+?>
+                        </select>
+                        <input type="hidden" name="id" />
+                    </td>
+                </tr>
+                <tr>
+                    <td>Fecha De Operaci&oacute;n<!-- date --></td>
+                    <td> : </td>
+                    <td><input type="text" class="invisibleInput"/><input type="text" name="date"  class="datepicker"/></td>
+                </tr>
+                <tr>
+                    <td>Importe<!-- amount --></td>
+                    <td> : </td>
+                    <td>
+                        $ <input type="text" name="amount" maxlength="100" class="required number"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Estado</td>
+                    <td> : </td>
+                    <td>
+                        <select name="state"  class="required" disabled="disabled">
+                            <option value="" selected="selected">Select</option>
+                            
+<?php
+$sList = $this->operationsState;
+$sListBlr = "";
+if (count($sList)) {
+    foreach ($sList as $sRow) {
+        $sId = $sRow->getId();
+        $sName = $sRow->getName();
+        $sListBlr .= "<option value='$sId'>$sName</option>";
+    }
+}
+echo $sListBlr;
+?>
+                        </select>
+
+
+                    </td>
+                </tr>
+                <tr>
+                    <td>Observaciones<!-- observations --></td>
+                    <td> : </td>
+                    <td>
+                        <textarea rows="3" cols="18" name="observations" maxlength="250"></textarea>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Informe<!-- report --></td>
+                    <td> : </td>
+                    <td>
+                        <textarea rows="3" cols="18" name="report" maxlength="250"></textarea>
+                    </td>
+                </tr>
+            </table>
+
+        </form>
+    </fieldset>
+</div>
+<div id="editCheques" title="Editar Cheque">
+
+    <fieldset>
+
+        <form action="<?php echo $this->url(array('module' => 'gyuser', 'controller' => 'index', 'action' => 'chequesformajax'), null, true); ?>" method="post" id="editChequesForm">
+            <table class="table5p">
+
+                <tr>
+                    <td>Fecha<!-- date --></td>
+                    <td> : </td>
+                    <td>
+                        <textarea class="invisibleInput"></textarea>
+                        <input type="text" name="date"  class="required datepicker"/>
+                        <input type="hidden" name="id"  class="" value=""/>
+
+                    </td>
+                </tr>
+                <tr>
+                    <td>Número De Cheque<!-- check_n --></td>
+                    <td> : </td>
+                    <td>
+                        <input type="text" name="check_n" class="required number"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Importe<!-- amount --></td>
+                    <td> : </td>
+                    <td>
+                        $ <input type="text" name="amount" maxlength="20" class="required number"/>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Estado<!-- status --></td>
+                    <td> : </td>
+                    <td id="chequeStatus"> 
+<!--
+                        <select name="status" class="statusDrpDwn">
+                            <option value="" selected="selected" disabled="disabled">Select</option>
+<?php
+$sList = $this->statusList;
+$sListBlr = "";
+if (count($sList)) {
+    foreach ($sList as $sRow) {
+        $sId = $sRow->getId();
+        $sName = $sRow->getStatus_list();
+        $sListBlr .= "<option value=\"$sId\">$sName</option>";
+    }
+}
+echo $sListBlr;
+?>
+                        </select>-->
+
+                    </td>
+                </tr>
+
+
+
+            </table>
+
+        </form>
+    </fieldset>
+</div>
+<div class="addNextChequeConfirm" title="Agregar Nuevo Cheque">
+
+    <fieldset>
+        <h2>Agregar otro?</h2>	
+
+
+    </fieldset>
+</div>
+<div class="ui-dialog mainMsgDiv" >
+    <div class="ui-dialog-titlebar ui-widget-header ui-corner-all ui-helper-clearfix mainMsgInnerDiv">
+        <span class="ui-dialog-title" id="mainMsg">
+            Editar Usuario
+        </span>
+        <a href="#" class="ui-dialog-titlebar-close ui-corner-all msgClose" role="button">
+            <span class="ui-icon ui-icon-closethick">cerrar</span></a>
+    </div>
+</div>
